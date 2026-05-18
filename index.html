@@ -168,27 +168,23 @@ const noteEl = document.getElementById('note');
 const timerEl = document.getElementById('timer');
 const liquidImg = document.getElementById('liquid-img');
 
-let player = { x: 250, y: 350, angle: 0 };
+let player = { x: 200, y: 350, angle: 0 };
 let keys = {};
 let gameActive = false;
 let timerActive = false;
 let timerInterval = null;
 
-// Сундуки сильно далеко от старта
 const chests = [
-    { x: 420, y: 150, num: "01", text: "all similarities are purely coincidental." },
-    { x: 780, y: 520, num: "02", text: "base will change the world\ndeployer is a robot not real human" },
-    { x: 1050, y: 180, num: "03", text: "brian Brian is a Reptilian" },
-    { x: 180, y: 520, num: "04", text: "When this $fnab token reaches a 1M market cap,\nsomething terrible will happen." },
+    { x: 300, y: 120, num: "01", text: "all similarities are purely coincidental." },
+    { x: 650, y: 520, num: "02", text: "base will change the world\ndeployer is a robot not real human" },
+    { x: 1050, y: 140, num: "03", text: "brian Brian is a Reptilian" },
+    { x: 180, y: 480, num: "04", text: "When this $fnab token reaches a 1M market cap,\nsomething terrible will happen." },
     { x: 920, y: 280, num: "05", text: "Brian is coming" }
 ];
 
 const liquidGuy = { x: 1080, y: 420 };
 
-window.addEventListener('keydown', e => { 
-    keys[e.code] = true;
-    if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].indexOf(e.code) > -1) e.preventDefault();
-});
+window.addEventListener('keydown', e => keys[e.code] = true);
 window.addEventListener('keyup', e => keys[e.code] = false);
 
 canvas.addEventListener('mousemove', (e) => {
@@ -207,20 +203,6 @@ resizeCanvas();
 function drawRoom() {
     ctx.fillStyle = '#020202';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-}
-
-function drawFlashlight() {
-    const grad = ctx.createRadialGradient(player.x, player.y, 45,
-        player.x + Math.cos(player.angle)*900, player.y + Math.sin(player.angle)*900, 1100);
-    grad.addColorStop(0, 'rgba(255,245,170,0.97)');
-    grad.addColorStop(0.4, 'rgba(255,215,90,0.45)');
-    grad.addColorStop(1, 'rgba(160,120,30,0)');
-    ctx.save();
-    ctx.beginPath();
-    ctx.arc(player.x, player.y, 1100, player.angle - 0.65, player.angle + 0.65);
-    ctx.fillStyle = grad;
-    ctx.fill();
-    ctx.restore();
 }
 
 function drawPlayer() {
@@ -255,7 +237,7 @@ function drawChest(c) {
 
 function drawLiquidGuy() {
     if (liquidImg.complete) {
-        ctx.drawImage(liquidImg, liquidGuy.x - 58, liquidGuy.y - 110, 115, 150);
+        ctx.drawImage(liquidImg, liquidGuy.x - 55, liquidGuy.y - 105, 110, 145);
     }
 }
 
@@ -281,17 +263,16 @@ function startReturnTimer() {
 function gameLoop() {
     if (!gameActive) return;
     drawRoom();
-    drawFlashlight();
     drawPlayer();
 
-    const speed = 4.5;
+    const speed = 4.2;
     if (keys['KeyW'] || keys['ArrowUp']) player.y -= speed;
     if (keys['KeyS'] || keys['ArrowDown']) player.y += speed;
     if (keys['KeyA'] || keys['ArrowLeft']) player.x -= speed;
     if (keys['KeyD'] || keys['ArrowRight']) player.x += speed;
 
-    player.x = Math.max(70, Math.min(canvas.width - 70, player.x));
-    player.y = Math.max(70, Math.min(canvas.height - 70, player.y));
+    player.x = Math.max(60, Math.min(canvas.width - 60, player.x));
+    player.y = Math.max(60, Math.min(canvas.height - 60, player.y));
 
     chests.forEach(c => drawChest(c));
     drawLiquidGuy();
@@ -300,8 +281,8 @@ function gameLoop() {
     let near = false;
 
     chests.forEach(chest => {
-        if (dist(chest) < 90) near = true;
-        if (dist(chest) < 90 && keys['KeyF']) {
+        if (dist(chest) < 85) near = true;
+        if (dist(chest) < 85 && keys['KeyF']) {
             noteEl.textContent = chest.text;
             noteEl.style.display = 'block';
             startReturnTimer();
@@ -309,8 +290,8 @@ function gameLoop() {
         }
     });
 
-    if (dist(liquidGuy) < 120) near = true;
-    if (dist(liquidGuy) < 120 && keys['KeyF']) {
+    if (dist(liquidGuy) < 110) near = true;
+    if (dist(liquidGuy) < 110 && keys['KeyF']) {
         noteEl.textContent = "BUY $LIQUID";
         noteEl.style.display = 'block';
         startReturnTimer();
@@ -327,7 +308,7 @@ document.getElementById('new-game').addEventListener('click', () => {
     document.getElementById('game-screen').style.display = 'block';
     gameActive = true;
     timerActive = false;
-    player.x = 250; 
+    player.x = 200; 
     player.y = 350;
     
     canvas.focus();
