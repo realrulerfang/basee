@@ -107,7 +107,7 @@
 <body>
 <div class="crt">
     <canvas id="noise"></canvas>
-    <img id="portrait" src="baseroom-normal.jpg" style="position:absolute; right:40px; top:50%; transform:translateY(-50%); width:42%; height:88%; object-fit:cover; z-index:1; filter:contrast(1.12) brightness(0.93);">
+    <img id="portrait" src="baseroom-normal.jpg" style="position:absolute; right:30px; top:50%; transform:translateY(-50%); width:46%; height:92%; object-fit:cover; z-index:1; filter:contrast(1.12) brightness(0.93);">
 
     <div class="content" id="menu-screen">
         <div class="title">1 NIGHT WITH BRIAN</div>
@@ -128,7 +128,7 @@
 </div>
 
 <script>
-// CRT Noise + Scanlines
+// CRT + Noise
 const noiseCanvas = document.getElementById('noise');
 const nCtx = noiseCanvas.getContext('2d');
 function resizeNoise(){ noiseCanvas.width = window.innerWidth; noiseCanvas.height = window.innerHeight; }
@@ -141,14 +141,16 @@ function drawNoise(){
 }
 drawNoise();
 
-// Jumpscare в меню
+// === УЛУЧШЕННЫЙ СКРИМЕР В МЕНЮ (каждые ~5 секунд) ===
 const portrait = document.getElementById('portrait');
 setInterval(() => {
     if (document.getElementById('menu-screen').style.display !== 'none') {
         portrait.src = 'baseroom-creepy.jpg';
-        setTimeout(() => portrait.src = 'baseroom-normal.jpg', 380);
+        setTimeout(() => {
+            portrait.src = 'baseroom-normal.jpg';
+        }, 280);
     }
-}, 9800); // примерно раз в 10 секунд
+}, 5000);
 
 // ====================== ИГРА ======================
 const canvas = document.getElementById('game-canvas');
@@ -163,11 +165,11 @@ let gameActive = false;
 let timerInterval = null;
 
 const chests = [
-    { x: 280, y: 220, num: "01", text: "all similarities are purely coincidental." },
-    { x: 480, y: 340, num: "02", text: "base will change the world\ndeployer is a robot not real human" },
+    { x: 250, y: 200, num: "01", text: "all similarities are purely coincidental." },
+    { x: 420, y: 380, num: "02", text: "base will change the world\ndeployer is a robot not real human" },
     { x: 680, y: 180, num: "03", text: "brian Brian is a Reptilian" },
-    { x: 820, y: 380, num: "04", text: "When this $fnab token reaches a 1M market cap,\nsomething terrible will happen." },
-    { x: 520, y: 180, num: "05", text: "brian is coming" }
+    { x: 820, y: 340, num: "04", text: "When this $fnab token reaches a 1M market cap,\nsomething terrible will happen." },
+    { x: 520, y: 160, num: "05", text: "brian is coming" }
 ];
 
 const wheelchairGuy = { x: 880, y: 410 };
@@ -231,6 +233,8 @@ function drawChest(c) {
 }
 
 function drawWheelchairGuy() {
+    // Используем твою картинку liquid.png
+    // (пока рисуем стилизованно, но можно заменить на реальное изображение)
     ctx.fillStyle = '#333';
     ctx.fillRect(wheelchairGuy.x-28, wheelchairGuy.y-8, 56, 18);
     ctx.fillStyle = '#444';
@@ -238,9 +242,10 @@ function drawWheelchairGuy() {
     ctx.fillStyle = '#ffddaa';
     ctx.fillRect(wheelchairGuy.x-12, wheelchairGuy.y-52, 24, 22);
     
+    // Светящаяся капля
     ctx.fillStyle = '#00ffff';
     ctx.beginPath();
-    ctx.arc(wheelchairGuy.x+10, wheelchairGuy.y-68, 7, 0, Math.PI*2);
+    ctx.arc(wheelchairGuy.x+12, wheelchairGuy.y-68, 8, 0, Math.PI*2);
     ctx.fill();
 }
 
