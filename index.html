@@ -1,1 +1,157 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>baseroom</title>
+<style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+        background: #000;
+        overflow: hidden;
+        font-family: 'Courier New', monospace;
+        height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+    }
 
+    .crt {
+        position: relative;
+        width: 100%;
+        max-width: 900px;
+        border: 20px solid #111;
+        border-radius: 8px;
+        box-shadow: 0 0 60px rgba(0, 255, 80, 0.6),
+                    inset 0 0 80px rgba(0, 0, 0, 0.9);
+        overflow: hidden;
+    }
+
+    .screen {
+        position: relative;
+        background: #001a00;
+        padding: 30px;
+        height: 100vh;
+        max-height: 620px;
+    }
+
+    canvas#noise { position: absolute; top:0; left:0; width:100%; height:100%; opacity:0.25; mix-blend-mode:screen; pointer-events:none; }
+
+    .scanlines {
+        position: absolute;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background: repeating-linear-gradient(to bottom, transparent 0px, transparent 2px, rgba(0,255,80,0.15) 2px, rgba(0,255,80,0.15) 4px);
+        pointer-events: none;
+        animation: scan 6s linear infinite;
+        z-index: 2;
+    }
+
+    @keyframes scan { 0% { transform: translateY(-100%); } 100% { transform: translateY(100%); } }
+
+    .vignette {
+        position: absolute; top:0; left:0; width:100%; height:100%;
+        box-shadow: inset 0 0 150px rgba(0,0,0,0.95);
+        pointer-events: none; z-index: 3;
+    }
+
+    .content { position: relative; z-index: 4; text-align: center; color: #00ff50; text-shadow: 0 0 15px #00ff50; }
+
+    .title {
+        font-size: 4.5rem;
+        letter-spacing: 8px;
+        margin-bottom: 30px;
+        animation: glitch 2s infinite;
+        text-transform: uppercase;
+    }
+
+    .portrait {
+        width: 320px;
+        height: 320px;
+        object-fit: cover;
+        border: 8px solid #00ff50;
+        box-shadow: 0 0 30px #00ff50;
+        margin: 20px auto;
+        transition: all 0.15s;
+    }
+
+    .loading { font-size: 1.8rem; margin: 30px 0 15px; letter-spacing: 6px; }
+    .bar { height: 18px; background: #002200; border: 3px solid #00ff50; width: 60%; margin: 0 auto; position: relative; }
+    .progress { height: 100%; width: 0%; background: linear-gradient(to right, #00ff50, #00cc40); animation: loading 8s linear forwards; }
+
+    @keyframes glitch {
+        0%,100% { text-shadow: 2px 2px #ff00ff, -2px -2px #00ffff; }
+        20% { text-shadow: -2px -2px #ff00ff, 2px 2px #00ffff; }
+    }
+
+    .static-text { margin-top: 20px; font-size: 1.1rem; opacity: 0.8; }
+</style>
+</head>
+<body>
+
+<div class="crt">
+    <div class="screen">
+        <canvas id="noise"></canvas>
+        
+        <div class="content">
+            <div class="title">baseroom</div>
+            
+            <img id="portrait" src="baseroom-normal.jpg" class="portrait" alt="baseroom">
+            
+            <div class="loading">INITIALIZING...</div>
+            
+            <div class="bar">
+                <div class="progress"></div>
+            </div>
+            
+            <div class="static-text">PLEASE STAND BY • SYSTEM BOOTING</div>
+        </div>
+
+        <div class="scanlines"></div>
+        <div class="vignette"></div>
+    </div>
+</div>
+
+<script>
+// Canvas noise
+const canvas = document.getElementById('noise');
+const ctx = canvas.getContext('2d');
+function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener('resize', resize);
+
+function drawNoise() {
+    const imageData = ctx.createImageData(canvas.width, canvas.height);
+    const data = imageData.data;
+    for (let i = 0; i < data.length; i += 4) {
+        const noise = Math.random() * 255;
+        data[i] = data[i+1] = data[i+2] = noise;
+        data[i+3] = 40;
+    }
+    ctx.putImageData(imageData, 0, 0);
+    requestAnimationFrame(drawNoise);
+}
+drawNoise();
+
+// Переключение на жуткую версию во время сильных помех
+const portrait = document.getElementById('portrait');
+let isCreepy = false;
+
+setInterval(() => {
+    if (Math.random() < 0.12) { // ~12% шанс каждые 2 секунды
+        portrait.src = 'baseroom-creepy.jpg';
+        isCreepy = true;
+        
+        setTimeout(() => {
+            portrait.src = 'baseroom-normal.jpg';
+            isCreepy = false;
+        }, 280 + Math.random() * 220); // 280-500мс
+    }
+}, 2000);
+</script>
+
+</body>
+</html>
