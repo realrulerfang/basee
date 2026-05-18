@@ -34,16 +34,17 @@
 
     .content {
         position: absolute;
-        top: 32%;
-        left: 15%;
+        top: 28%;
+        left: 12%;
         z-index: 10;
     }
     .title {
-        font-size: 4.5rem;
-        letter-spacing: 12px;
+        font-size: 4.4rem;
+        letter-spacing: 14px;
         text-transform: uppercase;
         text-shadow: 0 0 25px #aaffaa;
-        margin-bottom: 60px;
+        margin-bottom: 70px;
+        color: #aaffaa;
     }
     .menu-item {
         font-size: 2.3rem;
@@ -71,21 +72,32 @@
         left: 50%;
         transform: translate(-50%, -50%);
         background: #111;
-        border: 4px solid #aaffaa;
-        padding: 40px 60px;
-        font-size: 2.2rem;
-        color: #ff6666;
+        border: 5px solid #aaffaa;
+        padding: 50px 80px;
+        font-size: 3rem;
+        color: #ff4444;
         display: none;
         z-index: 100;
         text-align: center;
-        box-shadow: 0 0 40px #ff0000;
+        box-shadow: 0 0 50px #ff0000;
+    }
+    .prompt {
+        position: absolute;
+        bottom: 80px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 1.8rem;
+        color: #aaffaa;
+        text-shadow: 0 0 15px #aaffaa;
+        display: none;
+        z-index: 50;
     }
 </style>
 </head>
 <body>
 <div class="crt">
     <canvas id="noise"></canvas>
-    <img id="portrait" src="baseroom-normal.jpg" class="portrait" alt="" style="position:absolute; right:0; top:50%; transform:translateY(-50%); width:58%; height:100%; object-fit:cover; z-index:1; filter:contrast(1.15) brightness(0.9);">
+    <img id="portrait" src="baseroom-normal.jpg" style="position:absolute; right:0; top:50%; transform:translateY(-50%); width:58%; height:100%; object-fit:cover; z-index:1; filter:contrast(1.15) brightness(0.9);">
 
     <!-- Главное меню -->
     <div class="content" id="menu-screen">
@@ -99,7 +111,8 @@
     <!-- Мини-игра -->
     <div id="game-screen">
         <canvas id="game-canvas" width="1000" height="600"></canvas>
-        <div class="note" id="note">СОССАТЬ ПЕНДОСЫ</div>
+        <div class="prompt" id="prompt">НАЖМИ F</div>
+        <div class="note" id="note">$FNAB</div>
     </div>
 
     <div class="scanlines"></div>
@@ -115,7 +128,6 @@ function resizeNoise() {
 }
 resizeNoise();
 window.addEventListener('resize', resizeNoise);
-
 function drawNoise() {
     const data = nCtx.createImageData(noiseCanvas.width, noiseCanvas.height);
     const buf = data.data;
@@ -134,19 +146,18 @@ const portrait = document.getElementById('portrait');
 setInterval(() => {
     if (document.getElementById('menu-screen').style.display !== 'none') {
         portrait.src = 'baseroom-creepy.jpg';
-        setTimeout(() => {
-            portrait.src = 'baseroom-normal.jpg';
-        }, 380);
+        setTimeout(() => portrait.src = 'baseroom-normal.jpg', 380);
     }
 }, 6800);
 
 // ====================== МИНИ-ИГРА ======================
 const canvas = document.getElementById('game-canvas');
 const ctx = canvas.getContext('2d');
+const prompt = document.getElementById('prompt');
 const note = document.getElementById('note');
 
-let player = { x: 180, y: 300, angle: 0 };
-let chest = { x: 720, y: 260 };
+let player = { x: 200, y: 320, angle: 0 };
+let chest = { x: 750, y: 280 };
 let keys = {};
 let gameActive = false;
 let hasNote = false;
@@ -157,50 +168,58 @@ window.addEventListener('keyup', e => keys[e.code] = false);
 canvas.addEventListener('mousemove', (e) => {
     if (!gameActive) return;
     const rect = canvas.getBoundingClientRect();
-    const mx = e.clientX - rect.left;
-    const my = e.clientY - rect.top;
-    player.angle = Math.atan2(my - player.y, mx - player.x);
+    player.angle = Math.atan2(e.clientY - rect.top - player.y, e.clientX - rect.left - player.x);
 });
 
 function drawRoom() {
-    ctx.fillStyle = '#030303';
+    ctx.fillStyle = '#020202';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 }
 
 function drawFlashlight() {
-    const grad = ctx.createRadialGradient(player.x, player.y, 40, 
-        player.x + Math.cos(player.angle)*400, player.y + Math.sin(player.angle)*400, 420);
-    grad.addColorStop(0, 'rgba(255,245,180,0.97)');
-    grad.addColorStop(0.45, 'rgba(255,220,100,0.35)');
-    grad.addColorStop(1, 'rgba(200,160,40,0)');
+    const grad = ctx.createRadialGradient(player.x, player.y, 50,
+        player.x + Math.cos(player.angle)*450, player.y + Math.sin(player.angle)*450, 480);
+    grad.addColorStop(0, 'rgba(255,245,160,0.98)');
+    grad.addColorStop(0.5, 'rgba(255,210,80,0.4)');
+    grad.addColorStop(1, 'rgba(180,140,30,0)');
 
     ctx.save();
     ctx.beginPath();
-    ctx.arc(player.x, player.y, 380, player.angle - 0.55, player.angle + 0.55);
-    ctx.lineTo(player.x, player.y);
+    ctx.arc(player.x, player.y, 430, player.angle - 0.6, player.angle + 0.6);
     ctx.fillStyle = grad;
     ctx.fill();
     ctx.restore();
 }
 
 function drawPlayer() {
-    ctx.fillStyle = '#55aaff';
-    ctx.fillRect(player.x-14, player.y-22, 28, 44);           // тело
+    // Ноги
+    ctx.fillStyle = '#1e4d8c';
+    ctx.fillRect(player.x-12, player.y+12, 8, 22);
+    ctx.fillRect(player.x+4, player.y+12, 8, 22);
+    // Тело
+    ctx.fillStyle = '#3366dd';
+    ctx.fillRect(player.x-14, player.y-8, 28, 28);
+    // Руки
+    ctx.fillRect(player.x-18, player.y-2, 8, 18);
+    ctx.fillRect(player.x+10, player.y-2, 8, 18);
+    // Голова
     ctx.fillStyle = '#ffddaa';
-    ctx.fillRect(player.x-10, player.y-32, 20, 20);           // голова
+    ctx.fillRect(player.x-10, player.y-28, 20, 22);
     ctx.fillStyle = '#112233';
-    ctx.fillRect(player.x-6, player.y-27, 5, 6);              // глаза
-    ctx.fillRect(player.x+3, player.y-27, 5, 6);
+    ctx.fillRect(player.x-6, player.y-23, 5, 7);
+    ctx.fillRect(player.x+2, player.y-23, 5, 7);
 }
 
 function drawChest() {
     const dx = chest.x - player.x;
     const dy = chest.y - player.y;
-    if (Math.sqrt(dx*dx + dy*dy) < 280) {
+    const dist = Math.sqrt(dx*dx + dy*dy);
+
+    if (dist < 320) {
         ctx.fillStyle = '#b8860b';
-        ctx.fillRect(chest.x-28, chest.y-22, 56, 44);
-        ctx.fillStyle = '#8b5a00';
-        ctx.fillRect(chest.x-22, chest.y-32, 44, 14);
+        ctx.fillRect(chest.x-30, chest.y-25, 60, 50);
+        ctx.fillStyle = '#654300';
+        ctx.fillRect(chest.x-24, chest.y-35, 48, 14);
     }
 }
 
@@ -211,25 +230,29 @@ function gameLoop() {
     drawFlashlight();
 
     // Движение
-    const speed = 5.8;
-    if (keys['KeyW'] || keys['ArrowUp'])    { player.x += Math.cos(player.angle)*speed; player.y += Math.sin(player.angle)*speed; }
-    if (keys['KeyS'] || keys['ArrowDown'])  { player.x -= Math.cos(player.angle)*speed*0.7; player.y -= Math.sin(player.angle)*speed*0.7; }
-    if (keys['KeyA'] || keys['ArrowLeft'])  player.x -= speed;
-    if (keys['KeyD'] || keys['ArrowRight']) player.x += speed;
+    const speed = 6;
+    if (keys['ArrowUp'] || keys['KeyW'])    { player.y -= speed; }
+    if (keys['ArrowDown'] || keys['KeyS'])  { player.y += speed; }
+    if (keys['ArrowLeft'] || keys['KeyA'])  { player.x -= speed; }
+    if (keys['ArrowRight'] || keys['KeyD']) { player.x += speed; }
 
-    player.x = Math.max(40, Math.min(960, player.x));
-    player.y = Math.max(40, Math.min(560, player.y));
+    player.x = Math.max(50, Math.min(950, player.x));
+    player.y = Math.max(50, Math.min(550, player.y));
 
     drawChest();
     drawPlayer();
 
-    // Подбор записки
+    // Подсказка F
     const dx = chest.x - player.x;
     const dy = chest.y - player.y;
-    if (Math.sqrt(dx*dx + dy*dy) < 70 && keys['KeyF'] && !hasNote) {
+    const nearChest = Math.sqrt(dx*dx + dy*dy) < 80;
+
+    prompt.style.display = nearChest ? 'block' : 'none';
+
+    if (nearChest && keys['KeyF'] && !hasNote) {
         hasNote = true;
         note.style.display = 'block';
-        setTimeout(() => note.style.display = 'none', 4500);
+        setTimeout(() => note.style.display = 'none', 5000);
     }
 
     requestAnimationFrame(gameLoop);
@@ -245,7 +268,7 @@ document.getElementById('new-game').addEventListener('click', () => {
 });
 
 document.getElementById('continue').addEventListener('click', () => {
-    alert("Продолжение пока не доступно");
+    alert("Продолжение пока не реализовано");
 });
 </script>
 </body>
