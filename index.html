@@ -8,7 +8,7 @@
     body { background:#000; overflow:hidden; font-family:'Courier New', monospace; height:100vh; color:#aaffaa; }
     .crt {
         position:relative; width:100vw; height:100vh; background:#000;
-        border:40px solid #111; box-shadow:inset 0 0 200px #000; overflow:hidden;
+        border:20px solid #111; box-shadow:inset 0 0 200px #000; overflow:hidden;
     }
     canvas#noise, .scanlines {
         position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:30;
@@ -99,18 +99,19 @@ setInterval(() => {
     }
 }, 7200);
 
-// ====================== ИГРА ======================
+// ====================== МИНИ-ИГРА ======================
 const canvas = document.getElementById('game-canvas');
 const ctx = canvas.getContext('2d');
 const levelEl = document.getElementById('level');
 const timerEl = document.getElementById('timer');
 
 let gameActive = false, currentLevel = 1, timeLeft = 45;
-let timerInterval, obstacles = [], candles = [], pacmans = [];
+let timerInterval, enemies = [], projectiles = [];
 
 const player = { x: 120, y: 280, width: 48, height: 72, vy: 0, jumping: false, ducking: false };
 
 let keys = {};
+let enemySpawnCounter = 0;
 
 window.addEventListener('keydown', e => keys[e.code] = true);
 window.addEventListener('keyup', e => keys[e.code] = false);
@@ -124,64 +125,94 @@ function drawPlayer() {
     const py = player.ducking ? player.y + 28 : player.y;
     const ph = player.ducking ? 44 : player.height;
 
-    ctx.fillStyle = '#4488ff';
-    ctx.fillRect(player.x + 10, py + 18, 30, ph - 22);
+    // Ноги
+    ctx.fillStyle = '#224488';
+    ctx.fillRect(player.x + 14, py + 48, 10, 18);
+    ctx.fillRect(player.x + 28, py + 48, 10, 18);
+    // Тело
+    ctx.fillStyle = '#3366dd';
+    ctx.fillRect(player.x + 10, py + 20, 30, 32);
+    // Голова
     ctx.fillStyle = '#ffddaa';
-    ctx.fillRect(player.x + 18, py + 8, 24, 24);
+    ctx.fillRect(player.x + 17, py + 8, 24, 24);
+    // Глаза
     ctx.fillStyle = '#112233';
-    ctx.fillRect(player.x + 24, py + 14, 7, 8);
+    ctx.fillRect(player.x + 23, py + 14, 7, 8);
 }
 
-function createCandle() {
-    candles.push({ x: 750 + Math.random()*150, y: -40, width: 20, height: 50, speed: 8.5 });
+function drawEnemy(e) {
+    // Ноги
+    ctx.fillStyle = '#552222';
+    ctx.fillRect(e.x + 12, e.y + 52, 9, 20);
+    ctx.fillRect(e.x + 29, e.y + 52, 9, 20);
+    // Тело
+    ctx.fillStyle = '#992222';
+    ctx.fillRect(e.x + 10, e.y + 25, 30, 32);
+    // Руки
+    ctx.fillRect(e.x + 6, e.y + 30, 8, 18);
+    ctx.fillRect(e.x + 36, e.y + 30, 8, 18);
+    // Голова (лысая)
+    ctx.fillStyle = '#662222';
+    ctx.fillRect(e.x + 13, e.y + 10, 26, 22);
+    // Глаза
+    ctx.fillStyle = '#ff0000';
+    ctx.fillRect(e.x + 19, e.y + 16, 6, 7);
+    ctx.fillRect(e.x + 29, e.y + 16, 6, 7);
 }
 
-function createPacman() {
-    pacmans.push({ x: 820, y: 275, size: 38, speed: 7.5 + currentLevel*1.2, mouth: 0 });
+function createEnemy() {
+    const isThrower = (enemySpawnCounter % 3 === 0);
+    enemies.push({
+        x: 820,
+        y: 275,
+        width: 48,
+        height: 75,
+        speed: 5.2 + currentLevel * 0.7,
+        thrower: isThrower,
+        throwCooldown: isThrower ? 80 : 0
+    });
+    enemySpawnCounter++;
 }
 
-function updateCandles() {
-    for(let i = candles.length-1; i >= 0; i--) {
-        let c = candles[i];
-        c.y += c.speed;
+function updateEnemies() {
+    for(let i = enemies.length-1; i >= 0; i--) {
+        let e = enemies[i];
+        e.x -= e.speed;
 
-        ctx.fillStyle = '#ff0000';
-        ctx.fillRect(c.x, c.y, c.width, c.height);
-        ctx.fillStyle = '#ffaa00';
-        ctx.fillRect(c.x+5, c.y+8, 10, 14);
+        drawEnemy(e);
 
-        if (c.y > 420) candles.splice(i,1);
+        if (e.thrower && e.throwCooldown <= 0 && e.x < 550 && e.x > 300) {
+            projectiles.push({ x: e.x + 10, y: e.y + 35, width: 22, height: 6 });
+            e.throwCooldown = 110;
+        }
+        if (e.thrower) e.throwCooldown--;
 
-        if (player.x + player.width > c.x && player.x < c.x + c.width &&
-            player.y + player.height > c.y && player.y < c.y + c.height) {
+        if (e.x < -60) enemies.splice(i,1);
+
+        // Коллизия с игроком
+        if (player.x + player.width > e.x && player.x < e.x + e.width &&
+            player.y + player.height > e.y && player.y < e.y + e.height) {
             triggerScreamer();
         }
     }
 }
 
-function updatePacmans() {
-    for(let i = pacmans.length-1; i >= 0; i--) {
-        let p = pacmans[i];
-        p.x -= p.speed;
-        p.mouth = Math.sin(Date.now()/60) * 0.8 + 0.6; // анимация рта
+function updateProjectiles() {
+    for(let i = projectiles.length-1; i >= 0; i--) {
+        let p = projectiles[i];
+        p.x -= 11;
 
-        // Рисуем Pac-Man
-        ctx.fillStyle = '#ffdd00';
-        ctx.beginPath();
-        ctx.arc(p.x + p.size/2, p.y + p.size/2, p.size/2, p.mouth*Math.PI, (2-p.mouth)*Math.PI);
-        ctx.lineTo(p.x + p.size/2, p.y + p.size/2);
-        ctx.fill();
+        ctx.fillStyle = '#dddddd';
+        ctx.fillRect(p.x, p.y, p.width, p.height);
+        ctx.fillStyle = '#ff4444';
+        ctx.fillRect(p.x + 6, p.y - 4, 10, 14);
 
-        ctx.fillStyle = '#000';
-        ctx.beginPath();
-        ctx.arc(p.x + p.size*0.65, p.y + p.size*0.45, 5, 0, Math.PI*2);
-        ctx.fill();
-
-        if (p.x < -50) pacmans.splice(i,1);
+        if (p.x < -30) projectiles.splice(i,1);
 
         // Коллизия
-        if (player.x + player.width > p.x && player.x < p.x + p.size &&
-            player.y + player.height > p.y && player.y < p.y + p.size) {
+        if (!player.ducking &&
+            player.x + player.width > p.x && player.x < p.x + p.width &&
+            player.y + player.height > p.y && player.y < p.y + p.height + 10) {
             triggerScreamer();
         }
     }
@@ -194,7 +225,6 @@ function gameLoop() {
     ctx.fillRect(0, 0, 800, 400);
     drawGround();
 
-    // Управление
     player.ducking = (keys['ArrowDown'] || keys['KeyS']);
 
     if ((keys['Space'] || keys['ArrowUp']) && !player.jumping) {
@@ -212,21 +242,20 @@ function gameLoop() {
     }
 
     drawPlayer();
-    updateCandles();
-    updatePacmans();
+    updateEnemies();
+    updateProjectiles();
 
     requestAnimationFrame(gameLoop);
 }
 
-// Микро-скримеры
-function microScreamer() {
+// Короткий скример во время игры
+function ingameScreamer() {
     if (!gameActive) return;
     const s = document.getElementById('screamer');
     s.style.display = 'block';
-    setTimeout(() => s.style.display = 'none', 420);
+    setTimeout(() => s.style.display = 'none', 280);
 }
 
-// Запуск игры
 function startGame() {
     document.getElementById('menu-screen').style.display = 'none';
     document.getElementById('game-screen').style.display = 'flex';
@@ -236,7 +265,7 @@ function startGame() {
     currentLevel = 1;
     timeLeft = 45;
     player.y = 280;
-    obstacles = []; candles = []; pacmans = [];
+    enemies = []; projectiles = []; enemySpawnCounter = 0;
 
     levelEl.textContent = 1;
     timerEl.textContent = timeLeft;
@@ -252,9 +281,8 @@ function startGame() {
         }
     }, 1000);
 
-    setInterval(() => { if(gameActive) createCandle(); }, 380);        // часто
-    setInterval(() => { if(gameActive) createPacman(); }, 2400);       // Pac-Man
-    setInterval(microScreamer, 10200);                                 // микро-скримеры
+    setInterval(() => { if(gameActive) createEnemy(); }, 950);
+    setInterval(ingameScreamer, 15000);
 
     gameLoop();
 }
