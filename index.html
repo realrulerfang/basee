@@ -10,81 +10,117 @@
         overflow: hidden;
         font-family: 'Courier New', monospace;
         height: 100vh;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        position: relative;
+        color: #0f0;
     }
 
     .crt {
         position: relative;
-        width: 100%;
-        max-width: 900px;
-        border: 20px solid #111;
-        border-radius: 8px;
-        box-shadow: 0 0 60px rgba(0, 255, 80, 0.6),
-                    inset 0 0 80px rgba(0, 0, 0, 0.9);
+        width: 100vw;
+        height: 100vh;
+        border: 30px solid #0a0a0a;
+        box-shadow: 0 0 80px rgba(0, 255, 70, 0.4),
+                    inset 0 0 120px rgba(0,0,0,0.95);
         overflow: hidden;
     }
 
     .screen {
         position: relative;
-        background: #001a00;
-        padding: 30px;
-        height: 100vh;
-        max-height: 620px;
+        width: 100%;
+        height: 100%;
+        background: #050505;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 
-    canvas#noise { position: absolute; top:0; left:0; width:100%; height:100%; opacity:0.25; mix-blend-mode:screen; pointer-events:none; }
+    canvas#noise {
+        position: absolute;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        opacity: 0.35;
+        mix-blend-mode: screen;
+        pointer-events: none;
+    }
 
     .scanlines {
         position: absolute;
         top: 0; left: 0;
         width: 100%; height: 100%;
-        background: repeating-linear-gradient(to bottom, transparent 0px, transparent 2px, rgba(0,255,80,0.15) 2px, rgba(0,255,80,0.15) 4px);
+        background: repeating-linear-gradient(
+            to bottom,
+            transparent 0px,
+            transparent 3px,
+            rgba(0, 255, 80, 0.12) 3px,
+            rgba(0, 255, 80, 0.12) 6px
+        );
         pointer-events: none;
-        animation: scan 6s linear infinite;
+        animation: scan 8s linear infinite;
         z-index: 2;
     }
 
-    @keyframes scan { 0% { transform: translateY(-100%); } 100% { transform: translateY(100%); } }
-
-    .vignette {
-        position: absolute; top:0; left:0; width:100%; height:100%;
-        box-shadow: inset 0 0 150px rgba(0,0,0,0.95);
-        pointer-events: none; z-index: 3;
+    @keyframes scan { 
+        0% { transform: translateY(-100%); } 
+        100% { transform: translateY(100%); } 
     }
 
-    .content { position: relative; z-index: 4; text-align: center; color: #00ff50; text-shadow: 0 0 15px #00ff50; }
+    .content {
+        position: relative;
+        z-index: 5;
+        text-align: center;
+    }
 
     .title {
-        font-size: 4.5rem;
-        letter-spacing: 8px;
-        margin-bottom: 30px;
-        animation: glitch 2s infinite;
+        font-size: 5.5rem;
+        letter-spacing: 12px;
         text-transform: uppercase;
+        color: #00ff44;
+        text-shadow: 0 0 20px #00ff44,
+                     0 0 40px #00aa33;
+        margin-bottom: 40px;
+        animation: glitch 1.5s infinite;
     }
 
     .portrait {
-        width: 320px;
-        height: 320px;
+        width: 380px;
+        height: 380px;
         object-fit: cover;
-        border: 8px solid #00ff50;
-        box-shadow: 0 0 30px #00ff50;
-        margin: 20px auto;
-        transition: all 0.15s;
+        border: 12px solid #112211;
+        box-shadow: 0 0 40px #00ff44,
+                    inset 0 0 30px #000;
+        transition: all 0.2s;
+        image-rendering: crisp-edges;
     }
 
-    .loading { font-size: 1.8rem; margin: 30px 0 15px; letter-spacing: 6px; }
-    .bar { height: 18px; background: #002200; border: 3px solid #00ff50; width: 60%; margin: 0 auto; position: relative; }
-    .progress { height: 100%; width: 0%; background: linear-gradient(to right, #00ff50, #00cc40); animation: loading 8s linear forwards; }
+    .menu {
+        margin-top: 50px;
+        font-size: 2rem;
+        line-height: 2.4rem;
+    }
+
+    .menu-item {
+        cursor: pointer;
+        padding: 8px 40px;
+        display: inline-block;
+        transition: all 0.2s;
+    }
+
+    .menu-item:hover {
+        background: rgba(0, 255, 70, 0.15);
+        color: #ff4444;
+        text-shadow: 0 0 15px #ff4444;
+    }
+
+    .static-text {
+        margin-top: 60px;
+        font-size: 1.1rem;
+        opacity: 0.7;
+        letter-spacing: 3px;
+    }
 
     @keyframes glitch {
-        0%,100% { text-shadow: 2px 2px #ff00ff, -2px -2px #00ffff; }
-        20% { text-shadow: -2px -2px #ff00ff, 2px 2px #00ffff; }
+        0%, 100% { text-shadow: 3px 3px #ff00ff, -3px -3px #00ffff; }
+        20% { text-shadow: -3px -3px #ff00ff, 3px 3px #00ffff; }
     }
-
-    .static-text { margin-top: 20px; font-size: 1.1rem; opacity: 0.8; }
 </style>
 </head>
 <body>
@@ -96,26 +132,25 @@
         <div class="content">
             <div class="title">baseroom</div>
             
-            <img id="portrait" src="baseroom-normal.jpg" class="portrait" alt="baseroom">
+            <img id="portrait" src="baseroom-normal.jpg" class="portrait" alt="">
             
-            <div class="loading">INITIALIZING...</div>
-            
-            <div class="bar">
-                <div class="progress"></div>
+            <div class="menu">
+                <div class="menu-item">>> NEW GAME</div><br>
+                <div class="menu-item">>> CONTINUE</div>
             </div>
             
-            <div class="static-text">PLEASE STAND BY • SYSTEM BOOTING</div>
+            <div class="static-text">SYSTEM ONLINE • NIGHT 1</div>
         </div>
 
         <div class="scanlines"></div>
-        <div class="vignette"></div>
     </div>
 </div>
 
 <script>
-// Canvas noise
+// Canvas noise (FNAF стиль)
 const canvas = document.getElementById('noise');
 const ctx = canvas.getContext('2d');
+
 function resize() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
@@ -129,28 +164,23 @@ function drawNoise() {
     for (let i = 0; i < data.length; i += 4) {
         const noise = Math.random() * 255;
         data[i] = data[i+1] = data[i+2] = noise;
-        data[i+3] = 40;
+        data[i+3] = 55;
     }
     ctx.putImageData(imageData, 0, 0);
     requestAnimationFrame(drawNoise);
 }
 drawNoise();
 
-// Переключение на жуткую версию во время сильных помех
+// Жуткая фотка каждые ~5 секунд
 const portrait = document.getElementById('portrait');
-let isCreepy = false;
 
 setInterval(() => {
-    if (Math.random() < 0.12) { // ~12% шанс каждые 2 секунды
-        portrait.src = 'baseroom-creepy.jpg';
-        isCreepy = true;
-        
-        setTimeout(() => {
-            portrait.src = 'baseroom-normal.jpg';
-            isCreepy = false;
-        }, 280 + Math.random() * 220); // 280-500мс
-    }
-}, 2000);
+    portrait.src = 'baseroom-creepy.jpg';
+    
+    setTimeout(() => {
+        portrait.src = 'baseroom-normal.jpg';
+    }, 380 + Math.random() * 220); // держится 0.38–0.6 секунды
+}, 5000); // каждые 5 секунд
 </script>
 
 </body>
