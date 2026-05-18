@@ -204,7 +204,7 @@ canvas#noise,
 
 </div>
 
-<!-- LIQUID -->
+<!-- FIXED LIQUID IMAGE -->
 <img
     id="liquid-img"
     src="./liquid.png"
@@ -258,7 +258,7 @@ function drawNoise(){
 drawNoise();
 
 /* =========================
-   FNAF STYLE SCREAMER
+   SCREAMER EFFECT
 ========================= */
 
 const portrait = document.getElementById('portrait');
@@ -273,10 +273,10 @@ setInterval(()=>{
 
             portrait.src = './baseroom-normal.jpg';
 
-        },333);
+        },300);
     }
 
-},7000);
+},5000);
 
 /* =========================
    GAME
@@ -306,54 +306,46 @@ const player = {
     y:350
 };
 
-/* =========================
-   CHESTS MUCH FURTHER
-========================= */
-
 const chests = [
     {
-        x:220,
+        x:300,
         y:120,
         num:"01",
         text:"all similarities are purely coincidental."
     },
 
     {
-        x:1350,
-        y:780,
+        x:650,
+        y:520,
         num:"02",
         text:"base will change the world\ndeployer is a robot not real human"
     },
 
     {
-        x:1950,
-        y:180,
+        x:1050,
+        y:140,
         num:"03",
-        text:"Brian is a Reptilian"
+        text:"brian Brian is a Reptilian"
     },
 
     {
-        x:260,
-        y:920,
+        x:180,
+        y:480,
         num:"04",
         text:"When this $fnab token reaches a 1M market cap,\nsomething terrible will happen."
     },
 
     {
-        x:1750,
-        y:520,
+        x:920,
+        y:280,
         num:"05",
         text:"Brian is coming"
     }
 ];
 
-/* =========================
-   SMALLER LIQUID GUY
-========================= */
-
 const liquidGuy = {
-    x:1950,
-    y:920
+    x:1080,
+    y:420
 };
 
 /* =========================
@@ -396,18 +388,6 @@ resizeCanvas();
 window.addEventListener('resize', resizeCanvas);
 
 /* =========================
-   CAMERA
-========================= */
-
-function getCamera(){
-
-    return {
-        x: player.x - canvas.width / 2,
-        y: player.y - canvas.height / 2
-    };
-}
-
-/* =========================
    DRAW ROOM
 ========================= */
 
@@ -431,75 +411,69 @@ function drawPlayer(){
 
     ctx.fillStyle = '#1e4d8c';
 
-    ctx.fillRect(canvas.width/2-13, canvas.height/2+10, 9, 24);
-    ctx.fillRect(canvas.width/2+4, canvas.height/2+10, 9, 24);
+    ctx.fillRect(player.x-13, player.y+10, 9, 24);
+    ctx.fillRect(player.x+4, player.y+10, 9, 24);
 
     ctx.fillStyle = '#3366dd';
 
-    ctx.fillRect(canvas.width/2-15, canvas.height/2-10, 30, 30);
+    ctx.fillRect(player.x-15, player.y-10, 30, 30);
 
-    ctx.fillRect(canvas.width/2-19, canvas.height/2-8, 8, 22);
-    ctx.fillRect(canvas.width/2+11, canvas.height/2-8, 8, 22);
+    ctx.fillRect(player.x-19, player.y-8, 8, 22);
+    ctx.fillRect(player.x+11, player.y-8, 8, 22);
 
     ctx.fillStyle = '#ffddaa';
 
-    ctx.fillRect(canvas.width/2-11, canvas.height/2-32, 22, 24);
+    ctx.fillRect(player.x-11, player.y-32, 22, 24);
 
     ctx.fillStyle = '#112233';
 
-    ctx.fillRect(canvas.width/2-7, canvas.height/2-27, 6, 8);
-    ctx.fillRect(canvas.width/2+2, canvas.height/2-27, 6, 8);
+    ctx.fillRect(player.x-7, player.y-27, 6, 8);
+    ctx.fillRect(player.x+2, player.y-27, 6, 8);
 }
 
 /* =========================
    DRAW CHEST
 ========================= */
 
-function drawChest(c, cam){
-
-    const x = c.x - cam.x;
-    const y = c.y - cam.y;
+function drawChest(c){
 
     ctx.fillStyle = '#b8860b';
 
-    ctx.fillRect(x-34, y-32, 68, 62);
+    ctx.fillRect(c.x-34, c.y-32, 68, 62);
 
     ctx.fillStyle = '#654300';
 
-    ctx.fillRect(x-28, y-42, 56, 18);
+    ctx.fillRect(c.x-28, c.y-42, 56, 18);
 
     ctx.fillStyle = '#222';
 
-    ctx.fillRect(x-12, y-24, 24, 14);
+    ctx.fillRect(c.x-12, c.y-24, 24, 14);
 
     ctx.fillStyle = '#ddd';
 
-    ctx.fillRect(x-6, y-20, 12, 6);
+    ctx.fillRect(c.x-6, c.y-20, 12, 6);
 
     ctx.fillStyle = '#fff';
 
     ctx.font = 'bold 20px Courier New';
 
-    ctx.fillText(c.num, x-9, y-8);
+    ctx.fillText(c.num, c.x-9, c.y-8);
 }
 
 /* =========================
-   SMALL LIQUID GUY
+   DRAW LIQUID PNG
 ========================= */
 
-function drawLiquidGuy(cam){
+function drawLiquidGuy(){
 
     if(liquidImg.complete){
 
-        const x = liquidGuy.x - cam.x;
-        const y = liquidGuy.y - cam.y;
-
         ctx.drawImage(
             liquidImg,
-            x - 35,
-            y - 55,
-            70,
-            80
+            liquidGuy.x - 70,
+            liquidGuy.y - 110,
+            140,
+            160
         );
     }
 }
@@ -579,16 +553,14 @@ function gameLoop(){
     if(keys['KeyA'] || keys['ArrowLeft']) player.x -= speed;
     if(keys['KeyD'] || keys['ArrowRight']) player.x += speed;
 
-    player.x = Math.max(60, Math.min(2200, player.x));
-    player.y = Math.max(60, Math.min(1200, player.y));
-
-    const cam = getCamera();
-
-    chests.forEach(c => drawChest(c, cam));
-
-    drawLiquidGuy(cam);
+    player.x = Math.max(60, Math.min(canvas.width - 60, player.x));
+    player.y = Math.max(60, Math.min(canvas.height - 60, player.y));
 
     drawPlayer();
+
+    chests.forEach(drawChest);
+
+    drawLiquidGuy();
 
     let near = false;
 
@@ -617,7 +589,7 @@ function gameLoop(){
         }
     });
 
-    if(dist(liquidGuy) < 90){
+    if(dist(liquidGuy) < 110){
 
         near = true;
 
