@@ -32,11 +32,11 @@
 
     #game-screen {
         display:none; flex-direction:column; justify-content:center; align-items:center;
-        height:100%; background:rgba(0,0,0,0.9);
+        height:100%; background:rgba(0,0,0,0.92);
     }
-    #game-canvas { image-rendering:pixelated; border:6px solid #222; box-shadow:0 0 40px #000; }
-    #game-info { margin-top:12px; font-size:1.7rem; }
-    
+    #game-canvas { image-rendering:pixelated; border:6px solid #222; box-shadow:0 0 40px #000; background:#111; }
+    #game-info { margin-top:12px; font-size:1.8rem; }
+
     .game-over-screen {
         position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95);
         display:none; flex-direction:column; justify-content:center; align-items:center; z-index:50; color:#ff4444;
@@ -63,8 +63,8 @@
     </div>
 
     <div id="game-screen">
-        <canvas id="game-canvas" width="800" height="450"></canvas>
-        <div id="game-info">LEVEL <span id="level">1</span> — TIME: <span id="timer">40</span>s</div>
+        <canvas id="game-canvas" width="800" height="400"></canvas>
+        <div id="game-info">LEVEL <span id="level">1</span> | TIME: <span id="timer">45</span>s</div>
     </div>
 
     <div class="game-over-screen" id="game-over-screen">
@@ -95,92 +95,93 @@ const portrait = document.getElementById('portrait');
 setInterval(() => {
     if (document.getElementById('menu-screen').style.display !== 'none') {
         portrait.src = 'baseroom-creepy.jpg';
-        setTimeout(() => portrait.src = 'baseroom-normal.jpg', 350);
+        setTimeout(() => portrait.src = 'baseroom-normal.jpg', 380);
     }
 }, 7200);
 
-// ====================== МИНИ-ИГРА ======================
+// ====================== DINO-STYLE МИНИ-ИГРА ======================
 const canvas = document.getElementById('game-canvas');
 const ctx = canvas.getContext('2d');
 const levelEl = document.getElementById('level');
 const timerEl = document.getElementById('timer');
 
-let gameActive = false, currentLevel = 1, timeLeft = 40;
-let timerInterval, obstacles = [], score = 0;
+let gameActive = false, currentLevel = 1, timeLeft = 45;
+let timerInterval, obstacles = [], candles = [];
 
-const player = { x: 80, y: 280, width: 42, height: 82, vy: 0, jumping: false, speed: 7 };
-const enemy = { x: 780, y: 265, width: 50, height: 88, speed: 6.5 };
+const player = { x: 120, y: 280, width: 45, height: 70, vy: 0, jumping: false, ducking: false, speed: 5 };
 
 let keys = {};
+let score = 0;
+
 window.addEventListener('keydown', e => keys[e.code] = true);
 window.addEventListener('keyup', e => keys[e.code] = false);
 
-function drawBackground() {
-    ctx.fillStyle = '#0a0505'; ctx.fillRect(0,0,800,450);
-    ctx.fillStyle = '#1a0f0f'; ctx.fillRect(0,130,800,320);
-
-    ctx.strokeStyle = '#331111'; ctx.lineWidth = 6;
-    for(let i=0; i<8; i++){
-        let y = 130 + i*42;
-        ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(800,y); ctx.stroke();
-    }
+function drawGround() {
+    ctx.fillStyle = '#1a1a1a';
+    ctx.fillRect(0, 340, 800, 60);
+    ctx.fillStyle = '#333';
+    for(let i=0; i<800; i+=40) ctx.fillRect(i, 350, 25, 8);
 }
 
 function drawPlayer() {
+    const py = player.ducking ? player.y + 25 : player.y;
+    const ph = player.ducking ? 45 : player.height;
+
     // Тело
-    ctx.fillStyle = '#3366ff';
-    ctx.fillRect(player.x+8, player.y+28, 28, 54);
-    // Руки
-    ctx.fillRect(player.x+4, player.y+35, 8, 22);
-    ctx.fillRect(player.x+32, player.y+35, 8, 22);
+    ctx.fillStyle = '#4488ff';
+    ctx.fillRect(player.x + 10, py + 20, 28, ph - 25);
     // Голова
     ctx.fillStyle = '#ffddaa';
-    ctx.fillRect(player.x+12, player.y+10, 22, 24);
+    ctx.fillRect(player.x + 18, py + 8, 22, 22);
     // Глаза
-    ctx.fillStyle = '#112244';
-    ctx.fillRect(player.x+17, player.y+16, 6, 7);
-    ctx.fillRect(player.x+25, player.y+16, 6, 7);
-}
-
-function drawEnemy() {
-    ctx.fillStyle = '#aa2222';
-    ctx.fillRect(enemy.x+6, enemy.y+22, 38, 66);
-    ctx.fillStyle = '#661111';
-    ctx.fillRect(enemy.x+9, enemy.y+8, 32, 26);
-    ctx.fillStyle = '#ff0000';
-    ctx.fillRect(enemy.x+15, enemy.y+14, 9, 9);
-    ctx.fillRect(enemy.x+27, enemy.y+14, 9, 9);
+    ctx.fillStyle = '#000';
+    ctx.fillRect(player.x + 24, py + 14, 6, 7);
 }
 
 function createObstacle() {
-    if (Math.random() < 0.6 + currentLevel*0.08) {
-        obstacles.push({
-            x: 780 + Math.random()*100,
-            y: 80 + Math.random()*120,
-            width: 22,
-            height: 28,
-            speed: 5 + currentLevel*1.2
-        });
+    obstacles.push({ x: 800, y: 275, width: 45, height: 75, type: 'enemy' });
+}
+
+function createCandle() {
+    candles.push({ x: 800 + Math.random()*200, y: -50, width: 18, height: 45, speed: 7 + currentLevel });
+}
+
+function updateObstacles() {
+    for(let i = obstacles.length-1; i >= 0; i--) {
+        let o = obstacles[i];
+        o.x -= 6 + currentLevel * 0.8;
+
+        ctx.fillStyle = '#aa2222';
+        ctx.fillRect(o.x, o.y, o.width, o.height);
+        ctx.fillStyle = '#ff0000';
+        ctx.fillRect(o.x+12, o.y+15, 10, 12); // глаза
+
+        if (o.x < -50) obstacles.splice(i,1);
+
+        // Коллизия
+        if (!(player.ducking && o.y > 280) &&
+            player.x + player.width > o.x && player.x < o.x + o.width &&
+            player.y + player.height > o.y && player.y < o.y + o.height) {
+            triggerScreamer();
+        }
     }
 }
 
-function updateAndDrawObstacles() {
-    for(let i = obstacles.length-1; i >= 0; i--){
-        let o = obstacles[i];
-        o.x -= o.speed;
+function updateCandles() {
+    for(let i = candles.length-1; i >= 0; i--) {
+        let c = candles[i];
+        c.y += c.speed;
 
         ctx.fillStyle = '#ff2222';
-        ctx.fillRect(o.x, o.y, o.width, o.height);
-        ctx.fillStyle = '#ffff00';
-        ctx.fillRect(o.x+6, o.y+8, 10, 12); // пламя
+        ctx.fillRect(c.x, c.y, c.width, c.height);
+        ctx.fillStyle = '#ffdd00';
+        ctx.fillRect(c.x+4, c.y+8, 10, 12);
 
-        if (o.x < -30) obstacles.splice(i,1);
+        if (c.y > 400) candles.splice(i,1);
 
-        // Коллизия с игроком
-        if (
-            player.x < o.x + o.width && player.x + player.width > o.x &&
-            player.y < o.y + o.height && player.y + player.height > o.y
-        ) {
+        // Коллизия
+        if (player.x + player.width > c.x && player.x < c.x + c.width &&
+            player.y + player.height > c.y && player.y < c.y + c.height) {
             triggerScreamer();
         }
     }
@@ -189,21 +190,20 @@ function updateAndDrawObstacles() {
 function gameLoop() {
     if (!gameActive) return;
 
-    drawBackground();
-    drawPlayer();
-    drawEnemy();
+    ctx.fillStyle = '#0f0f0f';
+    ctx.fillRect(0, 0, 800, 400);
+    drawGround();
 
     // Управление
-    if ((keys['ArrowLeft'] || keys['KeyA'])) player.x -= player.speed;
-    if ((keys['ArrowRight'] || keys['KeyD'])) player.x += player.speed;
+    if ((keys['ArrowDown'] || keys['KeyS'])) player.ducking = true;
+    else player.ducking = false;
 
-    // Прыжок
     if ((keys['Space'] || keys['ArrowUp']) && !player.jumping) {
-        player.vy = -17;
+        player.vy = -18;
         player.jumping = true;
     }
 
-    player.vy += 0.85; // гравитация
+    player.vy += 0.9;
     player.y += player.vy;
 
     if (player.y >= 280) {
@@ -212,39 +212,19 @@ function gameLoop() {
         player.jumping = false;
     }
 
-    if (player.x < 20) player.x = 20;
-    if (player.x > 380) player.x = 380;
-
-    // Враг
-    enemy.x -= enemy.speed + currentLevel*0.6;
-    if (enemy.x < -80) enemy.x = 850;
-
-    updateAndDrawObstacles();
-
-    // Коллизия с врагом
-    if (
-        player.x + player.width - 10 > enemy.x &&
-        player.x + 10 < enemy.x + enemy.width &&
-        player.y + player.height > enemy.y + 15
-    ) {
-        triggerScreamer();
-        return;
-    }
+    drawPlayer();
+    updateObstacles();
+    updateCandles();
 
     requestAnimationFrame(gameLoop);
 }
 
-function nextLevel() {
-    currentLevel++;
-    if (currentLevel > 5) {
-        winGame();
-        return;
-    }
-    levelEl.textContent = currentLevel;
-    enemy.speed = 6.5 + currentLevel * 1.1;
-    timeLeft = 38;
-    timerEl.textContent = timeLeft;
-    obstacles = [];
+// Полноэкранный скример во время игры
+function randomScreamer() {
+    if (!gameActive) return;
+    const screamer = document.getElementById('screamer');
+    screamer.style.display = 'block';
+    setTimeout(() => screamer.style.display = 'none', 520);
 }
 
 function startGame() {
@@ -254,20 +234,29 @@ function startGame() {
 
     gameActive = true;
     currentLevel = 1;
-    timeLeft = 40;
-    player.x = 80; player.y = 280;
-    enemy.x = 780;
-    obstacles = [];
+    timeLeft = 45;
+    player.y = 280;
+    obstacles = []; candles = [];
+
     levelEl.textContent = 1;
     timerEl.textContent = timeLeft;
 
     timerInterval = setInterval(() => {
         timeLeft--;
         timerEl.textContent = timeLeft;
-        if (timeLeft <= 0) nextLevel();
+        if (timeLeft <= 0) {
+            currentLevel++;
+            if (currentLevel > 5) winGame();
+            else {
+                levelEl.textContent = currentLevel;
+                timeLeft = 45;
+            }
+        }
     }, 1000);
 
-    setInterval(() => { if(gameActive) createObstacle(); }, 480);
+    setInterval(() => { if(gameActive) createObstacle(); }, 1100);
+    setInterval(() => { if(gameActive) createCandle(); }, 650);
+    setInterval(randomScreamer, 15000);
 
     gameLoop();
 }
@@ -275,19 +264,18 @@ function startGame() {
 function triggerScreamer() {
     gameActive = false;
     clearInterval(timerInterval);
-    const screamer = document.getElementById('screamer');
     const goScreen = document.getElementById('game-over-screen');
-    screamer.style.display = 'block';
+    document.getElementById('screamer').style.display = 'block';
     goScreen.style.display = 'flex';
-    setTimeout(() => screamer.style.display = 'none', 650);
+    setTimeout(() => document.getElementById('screamer').style.display = 'none', 650);
 }
 
 function winGame() {
     gameActive = false;
     clearInterval(timerInterval);
     ctx.fillStyle = '#aaffaa';
-    ctx.font = 'bold 52px Courier New';
-    ctx.fillText('YOU BEAT ALL 5 NIGHTS!', 110, 200);
+    ctx.font = 'bold 48px Courier New';
+    ctx.fillText('ALL NIGHTS SURVIVED!', 140, 200);
 }
 
 document.getElementById('new-game').addEventListener('click', startGame);
@@ -295,7 +283,6 @@ document.getElementById('back-btn').addEventListener('click', () => {
     document.getElementById('game-over-screen').style.display = 'none';
     document.getElementById('game-screen').style.display = 'none';
     document.getElementById('menu-screen').style.display = 'block';
-    portrait.src = 'baseroom-normal.jpg';
 });
 </script>
 </body>
