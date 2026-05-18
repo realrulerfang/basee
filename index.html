@@ -107,7 +107,7 @@
 <body>
 <div class="crt">
     <canvas id="noise"></canvas>
-    <img id="portrait" src="baseroom-normal.jpg" style="position:absolute; right:20px; top:48%; transform:translateY(-50%); width:49%; height:96%; object-fit:cover; z-index:1; filter:contrast(1.12) brightness(0.93);">
+    <img id="portrait" src="baseroom-normal.jpg" style="position:absolute; right:40px; top:50%; transform:translateY(-50%); width:42%; height:88%; object-fit:cover; z-index:1; filter:contrast(1.12) brightness(0.93);">
 
     <div class="content" id="menu-screen">
         <div class="title">1 NIGHT WITH BRIAN</div>
@@ -128,7 +128,7 @@
 </div>
 
 <script>
-// CRT + Menu Jumpscare
+// CRT Noise + Scanlines
 const noiseCanvas = document.getElementById('noise');
 const nCtx = noiseCanvas.getContext('2d');
 function resizeNoise(){ noiseCanvas.width = window.innerWidth; noiseCanvas.height = window.innerHeight; }
@@ -141,13 +141,14 @@ function drawNoise(){
 }
 drawNoise();
 
+// Jumpscare в меню
 const portrait = document.getElementById('portrait');
 setInterval(() => {
     if (document.getElementById('menu-screen').style.display !== 'none') {
         portrait.src = 'baseroom-creepy.jpg';
         setTimeout(() => portrait.src = 'baseroom-normal.jpg', 380);
     }
-}, 6800);
+}, 9800); // примерно раз в 10 секунд
 
 // ====================== ИГРА ======================
 const canvas = document.getElementById('game-canvas');
@@ -252,4 +253,68 @@ function startReturnTimer() {
 
     timerInterval = setInterval(() => {
         time--;
-        timerEl.textContent = `00:${time < 
+        timerEl.textContent = `00:${time < 10 ? '0' : ''}${time}`;
+        if (time <= 0) {
+            clearInterval(timerInterval);
+            timerEl.style.display = 'none';
+            document.getElementById('game-screen').style.display = 'none';
+            document.getElementById('menu-screen').style.display = 'block';
+        }
+    }, 1000);
+}
+
+function gameLoop() {
+    if (!gameActive) return;
+
+    drawRoom();
+    drawFlashlight();
+    drawPlayer();
+
+    const speed = 6.2;
+    if (keys['KeyW'] || keys['ArrowUp']) player.y -= speed;
+    if (keys['KeyS'] || keys['ArrowDown']) player.y += speed;
+    if (keys['KeyA'] || keys['ArrowLeft']) player.x -= speed;
+    if (keys['KeyD'] || keys['ArrowRight']) player.x += speed;
+
+    chests.forEach(c => drawChest(c));
+    drawWheelchairGuy();
+
+    const dist = (obj) => Math.hypot(obj.x - player.x, obj.y - player.y);
+    let near = false;
+
+    chests.forEach(chest => {
+        if (dist(chest) < 80) near = true;
+        if (dist(chest) < 80 && keys['KeyF']) {
+            noteEl.textContent = chest.text;
+            noteEl.style.display = 'block';
+            startReturnTimer();
+            setTimeout(() => noteEl.style.display = 'none', 5000);
+        }
+    });
+
+    if (dist(wheelchairGuy) < 95) near = true;
+    if (dist(wheelchairGuy) < 95 && keys['KeyF']) {
+        noteEl.textContent = "BUY $LIQUID";
+        noteEl.style.display = 'block';
+        startReturnTimer();
+        setTimeout(() => noteEl.style.display = 'none', 4000);
+    }
+
+    promptEl.style.display = near ? 'block' : 'none';
+
+    requestAnimationFrame(gameLoop);
+}
+
+// Запуск
+document.getElementById('new-game').addEventListener('click', () => {
+    document.getElementById('menu-screen').style.display = 'none';
+    document.getElementById('game-screen').style.display = 'block';
+    gameActive = true;
+    player.x = 150; player.y = 300;
+    gameLoop();
+});
+
+document.getElementById('continue').addEventListener('click', () => alert("Продолжение пока не реализовано"));
+</script>
+</body>
+</html>
