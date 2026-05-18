@@ -97,7 +97,7 @@
         top: 30px;
         left: 50%;
         transform: translateX(-50%);
-        font-size: 2rem;
+        font-size: 2.1rem;
         color: #ff6666;
         display: none;
         z-index: 60;
@@ -107,7 +107,7 @@
 <body>
 <div class="crt">
     <canvas id="noise"></canvas>
-    <img id="portrait" src="baseroom-normal.jpg" style="position:absolute; right:30px; top:50%; transform:translateY(-50%); width:48%; height:92%; object-fit:cover; z-index:1; filter:contrast(1.12) brightness(0.92);">
+    <img id="portrait" src="baseroom-normal.jpg" style="position:absolute; right:20px; top:48%; transform:translateY(-50%); width:49%; height:96%; object-fit:cover; z-index:1; filter:contrast(1.12) brightness(0.93);">
 
     <div class="content" id="menu-screen">
         <div class="title">1 NIGHT WITH BRIAN</div>
@@ -128,7 +128,7 @@
 </div>
 
 <script>
-// CRT Noise + Menu Jumpscare
+// CRT + Menu Jumpscare
 const noiseCanvas = document.getElementById('noise');
 const nCtx = noiseCanvas.getContext('2d');
 function resizeNoise(){ noiseCanvas.width = window.innerWidth; noiseCanvas.height = window.innerHeight; }
@@ -156,20 +156,20 @@ const promptEl = document.getElementById('prompt');
 const noteEl = document.getElementById('note');
 const timerEl = document.getElementById('timer');
 
-let player = { x: 150, y: 300, angle: 0 };
+let player = { x: 140, y: 300, angle: 0 };
 let keys = {};
 let gameActive = false;
 let timerInterval = null;
 
 const chests = [
-    { x: 320, y: 220, num: "01", text: "SUCK PENDEJOS" },
-    { x: 480, y: 360, num: "02", text: "WHEN $FNAB HITS 1KK MC — SCARY POST FROM BASE" },
-    { x: 650, y: 190, num: "03", text: "BUY $LIQUID" },
-    { x: 780, y: 380, num: "04", text: "BRIAN IS COMING" },
-    { x: 850, y: 250, num: "05", text: "THIS GAME TELLS THE TRUTH" }
+    { x: 280, y: 220, num: "01", text: "all similarities are purely coincidental." },
+    { x: 480, y: 340, num: "02", text: "base will change the world\ndeployer is a robot not real human" },
+    { x: 680, y: 180, num: "03", text: "brian Brian is a Reptilian" },
+    { x: 820, y: 380, num: "04", text: "When this $fnab token reaches a 1M market cap,\nsomething terrible will happen." },
+    { x: 520, y: 180, num: "05", text: "brian is coming" }
 ];
 
-const wheelchairGuy = { x: 880, y: 420 };
+const wheelchairGuy = { x: 880, y: 410 };
 
 window.addEventListener('keydown', e => keys[e.code] = true);
 window.addEventListener('keyup', e => keys[e.code] = false);
@@ -245,75 +245,11 @@ function drawWheelchairGuy() {
 
 function startReturnTimer() {
     let time = 30;
-    timerEl.textContent = time;
+    timerEl.textContent = `00:${time}`;
     timerEl.style.display = 'block';
 
     if (timerInterval) clearInterval(timerInterval);
-    
+
     timerInterval = setInterval(() => {
         time--;
-        timerEl.textContent = time;
-        if (time <= 0) {
-            clearInterval(timerInterval);
-            timerEl.style.display = 'none';
-            document.getElementById('game-screen').style.display = 'none';
-            document.getElementById('menu-screen').style.display = 'block';
-        }
-    }, 1000);
-}
-
-function gameLoop() {
-    if (!gameActive) return;
-
-    drawRoom();
-    drawFlashlight();
-    drawPlayer();
-
-    const speed = 6.2;
-    if (keys['KeyW'] || keys['ArrowUp']) player.y -= speed;
-    if (keys['KeyS'] || keys['ArrowDown']) player.y += speed;
-    if (keys['KeyA'] || keys['ArrowLeft']) player.x -= speed;
-    if (keys['KeyD'] || keys['ArrowRight']) player.x += speed;
-
-    chests.forEach(c => drawChest(c));
-    drawWheelchairGuy();
-
-    const dist = (obj) => Math.hypot(obj.x - player.x, obj.y - player.y);
-    let near = false;
-
-    chests.forEach(chest => {
-        if (dist(chest) < 80) near = true;
-        if (dist(chest) < 80 && keys['KeyF']) {
-            noteEl.textContent = chest.text;
-            noteEl.style.display = 'block';
-            startReturnTimer();
-            setTimeout(() => noteEl.style.display = 'none', 5000);
-        }
-    });
-
-    if (dist(wheelchairGuy) < 95) near = true;
-    if (dist(wheelchairGuy) < 95 && keys['KeyF']) {
-        noteEl.textContent = "BUY $LIQUID";
-        noteEl.style.display = 'block';
-        startReturnTimer();
-        setTimeout(() => noteEl.style.display = 'none', 4000);
-    }
-
-    promptEl.style.display = near ? 'block' : 'none';
-
-    requestAnimationFrame(gameLoop);
-}
-
-// Запуск
-document.getElementById('new-game').addEventListener('click', () => {
-    document.getElementById('menu-screen').style.display = 'none';
-    document.getElementById('game-screen').style.display = 'block';
-    gameActive = true;
-    player.x = 150; player.y = 300;
-    gameLoop();
-});
-
-document.getElementById('continue').addEventListener('click', () => alert("Продолжение пока не реализовано"));
-</script>
-</body>
-</html>
+        timerEl.textContent = `00:${time < 
