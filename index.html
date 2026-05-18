@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<title>5 Nights with Brian</title>
+<title>1 Night with Brian</title>
 <style>
     * { margin:0; padding:0; box-sizing:border-box; }
     body {
@@ -34,16 +34,16 @@
 
     .content {
         position: absolute;
-        top: 28%;
-        left: 6%;
+        top: 32%;
+        left: 8%;
         z-index: 10;
     }
     .title {
-        font-size: 4.4rem;
-        letter-spacing: 14px;
+        font-size: 4.8rem;
+        letter-spacing: 12px;
         text-transform: uppercase;
         text-shadow: 0 0 25px #aaffaa;
-        margin-bottom: 70px;
+        margin-bottom: 60px;
         color: #aaffaa;
     }
     .menu-item {
@@ -66,15 +66,15 @@
         z-index: 20;
         background: #000;
     }
-    .note, .night-text {
+    .note {
         position: absolute;
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
         background: #111;
         border: 5px solid #aaffaa;
-        padding: 50px 80px;
-        font-size: 2.4rem;
+        padding: 45px 70px;
+        font-size: 2.3rem;
         color: #ff4444;
         display: none;
         z-index: 100;
@@ -97,10 +97,10 @@
 <body>
 <div class="crt">
     <canvas id="noise"></canvas>
-    <img id="portrait" src="baseroom-normal.jpg" style="position:absolute; right:0; top:50%; transform:translateY(-50%); width:58%; height:100%; object-fit:cover; z-index:1; filter:contrast(1.15) brightness(0.9);">
+    <img id="portrait" src="baseroom-normal.jpg" style="position:absolute; right:40px; top:50%; transform:translateY(-50%); width:48%; height:85%; object-fit:cover; z-index:1; filter:contrast(1.15) brightness(0.9);">
 
     <div class="content" id="menu-screen">
-        <div class="title">5 NIGHTS WITH BRIAN</div>
+        <div class="title">1 NIGHT WITH BRIAN</div>
         <div class="menu">
             <div class="menu-item" id="new-game">>> NEW GAME</div>
             <div class="menu-item" id="continue">>> CONTINUE</div>
@@ -111,14 +111,13 @@
         <canvas id="game-canvas" width="1000" height="600"></canvas>
         <div class="prompt" id="prompt">PRESS F</div>
         <div class="note" id="note"></div>
-        <div class="night-text" id="night-text"></div>
     </div>
 
     <div class="scanlines"></div>
 </div>
 
 <script>
-// CRT
+// CRT Noise
 const noiseCanvas = document.getElementById('noise');
 const nCtx = noiseCanvas.getContext('2d');
 function resizeNoise(){ noiseCanvas.width = window.innerWidth; noiseCanvas.height = window.innerHeight; }
@@ -139,25 +138,25 @@ setInterval(() => {
     }
 }, 6800);
 
-// ====================== ИГРА ======================
+// ====================== ОДНА КОМНАТА ======================
 const canvas = document.getElementById('game-canvas');
 const ctx = canvas.getContext('2d');
 const promptEl = document.getElementById('prompt');
 const noteEl = document.getElementById('note');
-const nightText = document.getElementById('night-text');
 
-let player = { x: 180, y: 300, angle: 0 };
-let currentNight = 1;
-
-let chest1 = { x: 720, y: 260 };           // Night 1
-let chest2 = { x: 680, y: 240 };           // Night 2
-let chest3 = { x: 750, y: 280 };           // Night 3
-let wheelchairGuy = { x: 880, y: 420 };    // Night 2
-let door = { x: 930, y: 280 };
-
+let player = { x: 150, y: 300, angle: 0 };
 let keys = {};
 let gameActive = false;
-let hasNote1 = false, hasNote2 = false, hasNote3 = false;
+
+const chests = [
+    { x: 380, y: 220, num: "01", text: "SUCK PENDEJOS" },
+    { x: 520, y: 340, num: "02", text: "WHEN $FNAB HITS 1KK MC — SCARY POST FROM BASE" },
+    { x: 680, y: 180, num: "03", text: "BUY $LIQUID" },
+    { x: 780, y: 380, num: "04", text: "BRIAN IS COMING" },
+    { x: 850, y: 240, num: "05", text: "THIS GAME TELLS THE TRUTH" }
+];
+
+const wheelchairGuy = { x: 880, y: 420 };
 
 window.addEventListener('keydown', e => keys[e.code] = true);
 window.addEventListener('keyup', e => keys[e.code] = false);
@@ -202,35 +201,36 @@ function drawPlayer() {
     ctx.fillRect(player.x+2, player.y-27, 6, 8);
 }
 
-function drawChest(x, y) {
+function drawChest(c) {
     ctx.fillStyle = '#b8860b';
-    ctx.fillRect(x-34, y-30, 68, 58);
+    ctx.fillRect(c.x-32, c.y-28, 64, 56);
     ctx.fillStyle = '#654300';
-    ctx.fillRect(x-27, y-40, 54, 18);
+    ctx.fillRect(c.x-26, c.y-38, 52, 16);
     ctx.fillStyle = '#222';
-    ctx.fillRect(x-10, y-22, 20, 12);
+    ctx.fillRect(c.x-10, c.y-20, 20, 12);
+    
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 18px Courier New';
+    ctx.fillText(c.num, c.x-8, c.y-5);
 }
 
 function drawWheelchairGuy() {
-    // Коляска
     ctx.fillStyle = '#333';
-    ctx.fillRect(wheelchairGuy.x-28, wheelchairGuy.y-8, 56, 16);
-    // Тело
+    ctx.fillRect(wheelchairGuy.x-28, wheelchairGuy.y-8, 56, 18);
     ctx.fillStyle = '#444';
     ctx.fillRect(wheelchairGuy.x-18, wheelchairGuy.y-38, 36, 32);
-    // Голова
     ctx.fillStyle = '#ffddaa';
     ctx.fillRect(wheelchairGuy.x-12, wheelchairGuy.y-52, 24, 22);
-    ctx.fillStyle = '#112';
-    ctx.fillRect(wheelchairGuy.x-8, wheelchairGuy.y-48, 6, 8);
-    ctx.fillRect(wheelchairGuy.x+3, wheelchairGuy.y-48, 6, 8);
-}
-
-function triggerMicroScreamer() {
-    portrait.src = 'baseroom-creepy.jpg';
-    setTimeout(() => {
-        portrait.src = 'baseroom-normal.jpg';
-    }, 280);
+    
+    // Светящаяся капелька
+    ctx.fillStyle = '#00ffff';
+    ctx.beginPath();
+    ctx.arc(wheelchairGuy.x+8, wheelchairGuy.y-65, 6, 0, Math.PI*2);
+    ctx.fill();
+    ctx.fillStyle = '#88ffff';
+    ctx.beginPath();
+    ctx.arc(wheelchairGuy.x+8, wheelchairGuy.y-65, 3, 0, Math.PI*2);
+    ctx.fill();
 }
 
 function gameLoop() {
@@ -246,73 +246,33 @@ function gameLoop() {
     if (keys['KeyA'] || keys['ArrowLeft']) player.x -= speed;
     if (keys['KeyD'] || keys['ArrowRight']) player.x += speed;
 
-    // Рисуем объекты
-    if (currentNight === 1) drawChest(chest1.x, chest1.y);
-    if (currentNight === 2) {
-        drawChest(chest2.x, chest2.y);
-        drawWheelchairGuy();
-    }
-    if (currentNight === 3) drawChest(chest3.x, chest3.y);
-
-    if (currentNight < 3) drawChest(door.x, door.y); // дверь
+    // Рисуем сундуки
+    chests.forEach(chest => drawChest(chest));
+    drawWheelchairGuy();
 
     const dist = (obj) => Math.hypot(obj.x - player.x, obj.y - player.y);
 
-    // Взаимодействия
-    let nearObject = false;
+    let near = false;
 
-    if (currentNight === 1 && dist(chest1) < 75 && keys['KeyF'] && !hasNote1) {
-        hasNote1 = true;
-        noteEl.textContent = "SUCK PENDEjos";
+    // Проверка сундуков
+    chests.forEach((chest, i) => {
+        if (dist(chest) < 75 && keys['KeyF']) {
+            noteEl.textContent = chest.text;
+            noteEl.style.display = 'block';
+            setTimeout(() => noteEl.style.display = 'none', 4500);
+        }
+        if (dist(chest) < 75) near = true;
+    });
+
+    // Инвалид
+    if (dist(wheelchairGuy) < 90 && keys['KeyF']) {
+        noteEl.textContent = "BUY $LIQUID";
         noteEl.style.display = 'block';
-        triggerMicroScreamer();
         setTimeout(() => noteEl.style.display = 'none', 4000);
     }
+    if (dist(wheelchairGuy) < 90) near = true;
 
-    if (currentNight === 2) {
-        if (dist(chest2) < 75 && keys['KeyF'] && !hasNote2) {
-            hasNote2 = true;
-            noteEl.textContent = "When $FNAB reaches 1KK MC there will be a scary post from the Base team";
-            noteEl.style.display = 'block';
-            triggerMicroScreamer();
-            setTimeout(() => noteEl.style.display = 'none', 5500);
-        }
-        if (dist(wheelchairGuy) < 90 && keys['KeyF'] && !hasNote3) {
-            hasNote3 = true;
-            noteEl.textContent = "BUY $LIQUID";
-            noteEl.style.display = 'block';
-            triggerMicroScreamer();
-            setTimeout(() => noteEl.style.display = 'none', 4000);
-        }
-    }
-
-    if (currentNight === 3 && dist(chest3) < 75 && keys['KeyF']) {
-        noteEl.textContent = "On June 1st the Base team will disband.\nBrian will leave the team.\nThis game tells the truth.";
-        noteEl.style.display = 'block';
-        triggerMicroScreamer();
-        setTimeout(() => noteEl.style.display = 'none', 7000);
-    }
-
-    // Дверь
-    if (currentNight < 3 && dist(door) < 85 && keys['KeyF']) {
-        nightText.textContent = `NIGHT ${currentNight + 1}`;
-        nightText.style.display = 'block';
-        portrait.src = 'baseroom-creepy.jpg';
-
-        setTimeout(() => {
-            portrait.src = 'baseroom-normal.jpg';
-            nightText.style.display = 'none';
-            currentNight++;
-            player.x = 150;
-            player.y = 300;
-        }, 650);
-    }
-
-    promptEl.style.display = 'none';
-    if (currentNight === 1 && dist(chest1) < 75) promptEl.style.display = 'block';
-    if (currentNight === 2 && (dist(chest2) < 75 || dist(wheelchairGuy) < 90)) promptEl.style.display = 'block';
-    if (currentNight === 3 && dist(chest3) < 75) promptEl.style.display = 'block';
-    if (currentNight < 3 && dist(door) < 85) promptEl.style.display = 'block';
+    promptEl.style.display = near ? 'block' : 'none';
 
     requestAnimationFrame(gameLoop);
 }
@@ -322,9 +282,7 @@ document.getElementById('new-game').addEventListener('click', () => {
     document.getElementById('menu-screen').style.display = 'none';
     document.getElementById('game-screen').style.display = 'block';
     gameActive = true;
-    currentNight = 1;
-    hasNote1 = hasNote2 = hasNote3 = false;
-    player.x = 180; player.y = 300;
+    player.x = 150; player.y = 300;
     gameLoop();
 });
 
