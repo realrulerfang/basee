@@ -34,16 +34,16 @@
 
     .content {
         position: absolute;
-        top: 32%;
-        left: 8%;
+        top: 28%;
+        left: 7%;
         z-index: 10;
     }
     .title {
-        font-size: 4.8rem;
+        font-size: 4.35rem;
         letter-spacing: 12px;
         text-transform: uppercase;
         text-shadow: 0 0 25px #aaffaa;
-        margin-bottom: 60px;
+        margin-bottom: 65px;
         color: #aaffaa;
     }
     .menu-item {
@@ -92,12 +92,22 @@
         display: none;
         z-index: 50;
     }
+    .timer {
+        position: absolute;
+        top: 30px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 2rem;
+        color: #ff6666;
+        display: none;
+        z-index: 60;
+    }
 </style>
 </head>
 <body>
 <div class="crt">
     <canvas id="noise"></canvas>
-    <img id="portrait" src="baseroom-normal.jpg" style="position:absolute; right:40px; top:50%; transform:translateY(-50%); width:48%; height:85%; object-fit:cover; z-index:1; filter:contrast(1.15) brightness(0.9);">
+    <img id="portrait" src="baseroom-normal.jpg" style="position:absolute; right:30px; top:50%; transform:translateY(-50%); width:48%; height:92%; object-fit:cover; z-index:1; filter:contrast(1.12) brightness(0.92);">
 
     <div class="content" id="menu-screen">
         <div class="title">1 NIGHT WITH BRIAN</div>
@@ -111,13 +121,14 @@
         <canvas id="game-canvas" width="1000" height="600"></canvas>
         <div class="prompt" id="prompt">PRESS F</div>
         <div class="note" id="note"></div>
+        <div class="timer" id="timer">30</div>
     </div>
 
     <div class="scanlines"></div>
 </div>
 
 <script>
-// CRT Noise
+// CRT Noise + Menu Jumpscare
 const noiseCanvas = document.getElementById('noise');
 const nCtx = noiseCanvas.getContext('2d');
 function resizeNoise(){ noiseCanvas.width = window.innerWidth; noiseCanvas.height = window.innerHeight; }
@@ -138,22 +149,24 @@ setInterval(() => {
     }
 }, 6800);
 
-// ====================== ОДНА КОМНАТА ======================
+// ====================== ИГРА ======================
 const canvas = document.getElementById('game-canvas');
 const ctx = canvas.getContext('2d');
 const promptEl = document.getElementById('prompt');
 const noteEl = document.getElementById('note');
+const timerEl = document.getElementById('timer');
 
 let player = { x: 150, y: 300, angle: 0 };
 let keys = {};
 let gameActive = false;
+let timerInterval = null;
 
 const chests = [
-    { x: 380, y: 220, num: "01", text: "SUCK PENDEJOS" },
-    { x: 520, y: 340, num: "02", text: "WHEN $FNAB HITS 1KK MC — SCARY POST FROM BASE" },
-    { x: 680, y: 180, num: "03", text: "BUY $LIQUID" },
+    { x: 320, y: 220, num: "01", text: "SUCK PENDEJOS" },
+    { x: 480, y: 360, num: "02", text: "WHEN $FNAB HITS 1KK MC — SCARY POST FROM BASE" },
+    { x: 650, y: 190, num: "03", text: "BUY $LIQUID" },
     { x: 780, y: 380, num: "04", text: "BRIAN IS COMING" },
-    { x: 850, y: 240, num: "05", text: "THIS GAME TELLS THE TRUTH" }
+    { x: 850, y: 250, num: "05", text: "THIS GAME TELLS THE TRUTH" }
 ];
 
 const wheelchairGuy = { x: 880, y: 420 };
@@ -203,15 +216,17 @@ function drawPlayer() {
 
 function drawChest(c) {
     ctx.fillStyle = '#b8860b';
-    ctx.fillRect(c.x-32, c.y-28, 64, 56);
+    ctx.fillRect(c.x-34, c.y-32, 68, 62);
     ctx.fillStyle = '#654300';
-    ctx.fillRect(c.x-26, c.y-38, 52, 16);
+    ctx.fillRect(c.x-28, c.y-42, 56, 18);
     ctx.fillStyle = '#222';
-    ctx.fillRect(c.x-10, c.y-20, 20, 12);
+    ctx.fillRect(c.x-12, c.y-24, 24, 14);
+    ctx.fillStyle = '#ddd';
+    ctx.fillRect(c.x-6, c.y-20, 12, 6);
     
     ctx.fillStyle = '#fff';
-    ctx.font = 'bold 18px Courier New';
-    ctx.fillText(c.num, c.x-8, c.y-5);
+    ctx.font = 'bold 20px Courier New';
+    ctx.fillText(c.num, c.x-9, c.y-8);
 }
 
 function drawWheelchairGuy() {
@@ -222,15 +237,29 @@ function drawWheelchairGuy() {
     ctx.fillStyle = '#ffddaa';
     ctx.fillRect(wheelchairGuy.x-12, wheelchairGuy.y-52, 24, 22);
     
-    // Светящаяся капелька
     ctx.fillStyle = '#00ffff';
     ctx.beginPath();
-    ctx.arc(wheelchairGuy.x+8, wheelchairGuy.y-65, 6, 0, Math.PI*2);
+    ctx.arc(wheelchairGuy.x+10, wheelchairGuy.y-68, 7, 0, Math.PI*2);
     ctx.fill();
-    ctx.fillStyle = '#88ffff';
-    ctx.beginPath();
-    ctx.arc(wheelchairGuy.x+8, wheelchairGuy.y-65, 3, 0, Math.PI*2);
-    ctx.fill();
+}
+
+function startReturnTimer() {
+    let time = 30;
+    timerEl.textContent = time;
+    timerEl.style.display = 'block';
+
+    if (timerInterval) clearInterval(timerInterval);
+    
+    timerInterval = setInterval(() => {
+        time--;
+        timerEl.textContent = time;
+        if (time <= 0) {
+            clearInterval(timerInterval);
+            timerEl.style.display = 'none';
+            document.getElementById('game-screen').style.display = 'none';
+            document.getElementById('menu-screen').style.display = 'block';
+        }
+    }, 1000);
 }
 
 function gameLoop() {
@@ -246,31 +275,29 @@ function gameLoop() {
     if (keys['KeyA'] || keys['ArrowLeft']) player.x -= speed;
     if (keys['KeyD'] || keys['ArrowRight']) player.x += speed;
 
-    // Рисуем сундуки
-    chests.forEach(chest => drawChest(chest));
+    chests.forEach(c => drawChest(c));
     drawWheelchairGuy();
 
     const dist = (obj) => Math.hypot(obj.x - player.x, obj.y - player.y);
-
     let near = false;
 
-    // Проверка сундуков
-    chests.forEach((chest, i) => {
-        if (dist(chest) < 75 && keys['KeyF']) {
+    chests.forEach(chest => {
+        if (dist(chest) < 80) near = true;
+        if (dist(chest) < 80 && keys['KeyF']) {
             noteEl.textContent = chest.text;
             noteEl.style.display = 'block';
-            setTimeout(() => noteEl.style.display = 'none', 4500);
+            startReturnTimer();
+            setTimeout(() => noteEl.style.display = 'none', 5000);
         }
-        if (dist(chest) < 75) near = true;
     });
 
-    // Инвалид
-    if (dist(wheelchairGuy) < 90 && keys['KeyF']) {
+    if (dist(wheelchairGuy) < 95) near = true;
+    if (dist(wheelchairGuy) < 95 && keys['KeyF']) {
         noteEl.textContent = "BUY $LIQUID";
         noteEl.style.display = 'block';
+        startReturnTimer();
         setTimeout(() => noteEl.style.display = 'none', 4000);
     }
-    if (dist(wheelchairGuy) < 90) near = true;
 
     promptEl.style.display = near ? 'block' : 'none';
 
