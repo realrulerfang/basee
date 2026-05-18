@@ -35,7 +35,7 @@
     .content {
         position: absolute;
         top: 28%;
-        left: 12%;
+        left: 8%;           /* сдвинул сильнее влево */
         z-index: 10;
     }
     .title {
@@ -66,7 +66,7 @@
         z-index: 20;
         background: #000;
     }
-    .note {
+    .note, .night-text {
         position: absolute;
         top: 50%;
         left: 50%;
@@ -74,7 +74,7 @@
         background: #111;
         border: 5px solid #aaffaa;
         padding: 50px 80px;
-        font-size: 3rem;
+        font-size: 2.8rem;
         color: #ff4444;
         display: none;
         z-index: 100;
@@ -86,7 +86,7 @@
         bottom: 80px;
         left: 50%;
         transform: translateX(-50%);
-        font-size: 1.8rem;
+        font-size: 1.9rem;
         color: #aaffaa;
         text-shadow: 0 0 15px #aaffaa;
         display: none;
@@ -108,40 +108,31 @@
         </div>
     </div>
 
-    <!-- Мини-игра -->
+    <!-- Игра -->
     <div id="game-screen">
         <canvas id="game-canvas" width="1000" height="600"></canvas>
         <div class="prompt" id="prompt">НАЖМИ F</div>
-        <div class="note" id="note">$FNAB</div>
+        <div class="note" id="note"></div>
+        <div class="night-text" id="night-text"></div>
     </div>
 
     <div class="scanlines"></div>
 </div>
 
 <script>
-// CRT Noise
+// CRT + Menu Jumpscare
 const noiseCanvas = document.getElementById('noise');
 const nCtx = noiseCanvas.getContext('2d');
-function resizeNoise() {
-    noiseCanvas.width = window.innerWidth;
-    noiseCanvas.height = window.innerHeight;
-}
-resizeNoise();
-window.addEventListener('resize', resizeNoise);
-function drawNoise() {
+function resizeNoise(){ noiseCanvas.width = window.innerWidth; noiseCanvas.height = window.innerHeight; }
+resizeNoise(); window.addEventListener('resize', resizeNoise);
+function drawNoise(){
     const data = nCtx.createImageData(noiseCanvas.width, noiseCanvas.height);
     const buf = data.data;
-    for (let i = 0; i < buf.length; i += 4) {
-        const val = Math.random() * 255;
-        buf[i] = buf[i+1] = buf[i+2] = val;
-        buf[i+3] = 55;
-    }
-    nCtx.putImageData(data, 0, 0);
-    requestAnimationFrame(drawNoise);
+    for(let i=0;i<buf.length;i+=4){ const val=Math.random()*255; buf[i]=buf[i+1]=buf[i+2]=val; buf[i+3]=55; }
+    nCtx.putImageData(data,0,0); requestAnimationFrame(drawNoise);
 }
 drawNoise();
 
-// Jumpscare в меню
 const portrait = document.getElementById('portrait');
 setInterval(() => {
     if (document.getElementById('menu-screen').style.display !== 'none') {
@@ -150,17 +141,22 @@ setInterval(() => {
     }
 }, 6800);
 
-// ====================== МИНИ-ИГРА ======================
+// ====================== ИГРА ======================
 const canvas = document.getElementById('game-canvas');
 const ctx = canvas.getContext('2d');
-const prompt = document.getElementById('prompt');
-const note = document.getElementById('note');
+const promptEl = document.getElementById('prompt');
+const noteEl = document.getElementById('note');
+const nightText = document.getElementById('night-text');
 
-let player = { x: 200, y: 320, angle: 0 };
-let chest = { x: 750, y: 280 };
+let player = { x: 180, y: 300, angle: 0 };
+let currentNight = 1;
+let chest1 = { x: 680, y: 240 };
+let chest2 = { x: 720, y: 280 };
+let door = { x: 920, y: 280 };
 let keys = {};
 let gameActive = false;
-let hasNote = false;
+let hasNote1 = false;
+let hasNote2 = false;
 
 window.addEventListener('keydown', e => keys[e.code] = true);
 window.addEventListener('keyup', e => keys[e.code] = false);
@@ -177,50 +173,37 @@ function drawRoom() {
 }
 
 function drawFlashlight() {
-    const grad = ctx.createRadialGradient(player.x, player.y, 50,
-        player.x + Math.cos(player.angle)*450, player.y + Math.sin(player.angle)*450, 480);
-    grad.addColorStop(0, 'rgba(255,245,160,0.98)');
-    grad.addColorStop(0.5, 'rgba(255,210,80,0.4)');
-    grad.addColorStop(1, 'rgba(180,140,30,0)');
-
+    const grad = ctx.createRadialGradient(player.x, player.y, 45,
+        player.x + Math.cos(player.angle)*480, player.y + Math.sin(player.angle)*480, 520);
+    grad.addColorStop(0, 'rgba(255,245,170,0.97)');
+    grad.addColorStop(0.45, 'rgba(255,215,90,0.38)');
+    grad.addColorStop(1, 'rgba(160,120,30,0)');
     ctx.save();
     ctx.beginPath();
-    ctx.arc(player.x, player.y, 430, player.angle - 0.6, player.angle + 0.6);
+    ctx.arc(player.x, player.y, 460, player.angle - 0.58, player.angle + 0.58);
     ctx.fillStyle = grad;
     ctx.fill();
     ctx.restore();
 }
 
 function drawPlayer() {
-    // Ноги
     ctx.fillStyle = '#1e4d8c';
-    ctx.fillRect(player.x-12, player.y+12, 8, 22);
-    ctx.fillRect(player.x+4, player.y+12, 8, 22);
-    // Тело
+    ctx.fillRect(player.x-13, player.y+10, 9, 24);   // ноги
+    ctx.fillRect(player.x+4, player.y+10, 9, 24);
     ctx.fillStyle = '#3366dd';
-    ctx.fillRect(player.x-14, player.y-8, 28, 28);
-    // Руки
-    ctx.fillRect(player.x-18, player.y-2, 8, 18);
-    ctx.fillRect(player.x+10, player.y-2, 8, 18);
-    // Голова
+    ctx.fillRect(player.x-15, player.y-10, 30, 30);  // тело
+    ctx.fillRect(player.x-19, player.y-8, 8, 22);    // руки
+    ctx.fillRect(player.x+11, player.y-8, 8, 22);
     ctx.fillStyle = '#ffddaa';
-    ctx.fillRect(player.x-10, player.y-28, 20, 22);
+    ctx.fillRect(player.x-11, player.y-32, 22, 24);  // голова
     ctx.fillStyle = '#112233';
-    ctx.fillRect(player.x-6, player.y-23, 5, 7);
-    ctx.fillRect(player.x+2, player.y-23, 5, 7);
+    ctx.fillRect(player.x-7, player.y-27, 6, 8);
+    ctx.fillRect(player.x+2, player.y-27, 6, 8);
 }
 
-function drawChest() {
-    const dx = chest.x - player.x;
-    const dy = chest.y - player.y;
-    const dist = Math.sqrt(dx*dx + dy*dy);
-
-    if (dist < 320) {
-        ctx.fillStyle = '#b8860b';
-        ctx.fillRect(chest.x-30, chest.y-25, 60, 50);
-        ctx.fillStyle = '#654300';
-        ctx.fillRect(chest.x-24, chest.y-35, 48, 14);
-    }
+function drawObject(obj, color) {
+    ctx.fillStyle = color;
+    ctx.fillRect(obj.x-30, obj.y-25, 60, 50);
 }
 
 function gameLoop() {
@@ -228,32 +211,55 @@ function gameLoop() {
 
     drawRoom();
     drawFlashlight();
-
-    // Движение
-    const speed = 6;
-    if (keys['ArrowUp'] || keys['KeyW'])    { player.y -= speed; }
-    if (keys['ArrowDown'] || keys['KeyS'])  { player.y += speed; }
-    if (keys['ArrowLeft'] || keys['KeyA'])  { player.x -= speed; }
-    if (keys['ArrowRight'] || keys['KeyD']) { player.x += speed; }
-
-    player.x = Math.max(50, Math.min(950, player.x));
-    player.y = Math.max(50, Math.min(550, player.y));
-
-    drawChest();
     drawPlayer();
 
-    // Подсказка F
-    const dx = chest.x - player.x;
-    const dy = chest.y - player.y;
-    const nearChest = Math.sqrt(dx*dx + dy*dy) < 80;
+    // Движение без ограничений
+    const speed = 6.2;
+    if (keys['KeyW'] || keys['ArrowUp'])    player.y -= speed;
+    if (keys['KeyS'] || keys['ArrowDown'])  player.y += speed;
+    if (keys['KeyA'] || keys['ArrowLeft'])  player.x -= speed;
+    if (keys['KeyD'] || keys['ArrowRight']) player.x += speed;
 
-    prompt.style.display = nearChest ? 'block' : 'none';
+    // Объекты
+    drawObject(chest1, '#b8860b');
+    if (currentNight === 2) drawObject(chest2, '#b8860b');
+    if (currentNight === 1) drawObject(door, '#444444');
 
-    if (nearChest && keys['KeyF'] && !hasNote) {
-        hasNote = true;
-        note.style.display = 'block';
-        setTimeout(() => note.style.display = 'none', 5000);
+    // Взаимодействие
+    const checkDist = (obj) => Math.hypot(obj.x - player.x, obj.y - player.y);
+
+    // Первый сундук
+    if (checkDist(chest1) < 70 && keys['KeyF'] && !hasNote1) {
+        hasNote1 = true;
+        noteEl.textContent = "сосать пендосы";
+        noteEl.style.display = 'block';
+        setTimeout(() => noteEl.style.display = 'none', 4000);
     }
+
+    // Второй сундук (Night 2)
+    if (currentNight === 2 && checkDist(chest2) < 70 && keys['KeyF'] && !hasNote2) {
+        hasNote2 = true;
+        noteEl.textContent = "Когда токен $FNAB достигнет 1KK MC — будет страшный пост от команды Бейз в твиттере";
+        noteEl.style.display = 'block';
+        setTimeout(() => noteEl.style.display = 'none', 6000);
+    }
+
+    // Дверь
+    if (currentNight === 1 && checkDist(door) < 80 && keys['KeyF']) {
+        nightText.textContent = "NIGHT 2";
+        nightText.style.display = 'block';
+        
+        // Короткий скример
+        portrait.src = 'baseroom-creepy.jpg';
+        setTimeout(() => {
+            portrait.src = 'baseroom-normal.jpg';
+            nightText.style.display = 'none';
+            currentNight = 2;
+            player.x = 100; // респавн в новой комнате
+        }, 420);
+    }
+
+    promptEl.style.display = (checkDist(chest1) < 70 || (currentNight===2 && checkDist(chest2)<70) || (currentNight===1 && checkDist(door)<80)) ? 'block' : 'none';
 
     requestAnimationFrame(gameLoop);
 }
@@ -263,13 +269,15 @@ document.getElementById('new-game').addEventListener('click', () => {
     document.getElementById('menu-screen').style.display = 'none';
     document.getElementById('game-screen').style.display = 'block';
     gameActive = true;
-    hasNote = false;
+    currentNight = 1;
+    hasNote1 = false;
+    hasNote2 = false;
+    player.x = 180;
+    player.y = 300;
     gameLoop();
 });
 
-document.getElementById('continue').addEventListener('click', () => {
-    alert("Продолжение пока не реализовано");
-});
+document.getElementById('continue').addEventListener('click', () => alert("Продолжение пока не реализовано"));
 </script>
 </body>
 </html>
