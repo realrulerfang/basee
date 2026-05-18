@@ -107,7 +107,7 @@
 <body>
 <div class="crt">
     <canvas id="noise"></canvas>
-    <img id="portrait" src="baseroom-normal.jpg" style="position:absolute; right:30px; top:50%; transform:translateY(-50%); width:46%; height:92%; object-fit:cover; z-index:1; filter:contrast(1.12) brightness(0.93);">
+    <img id="portrait" src="baseroom-normal.jpg" style="position:absolute; right:30px; top:50%; transform:translateY(-50%); width:44%; height:90%; object-fit:cover; z-index:1; filter:contrast(1.12) brightness(0.93);">
 
     <div class="content" id="menu-screen">
         <div class="title">1 NIGHT WITH BRIAN</div>
@@ -118,7 +118,7 @@
     </div>
 
     <div id="game-screen">
-        <canvas id="game-canvas" width="1000" height="600"></canvas>
+        <canvas id="game-canvas" width="1100" height="620"></canvas>
         <div class="prompt" id="prompt">PRESS F</div>
         <div class="note" id="note"></div>
         <div class="timer" id="timer">30</div>
@@ -141,14 +141,14 @@ function drawNoise(){
 }
 drawNoise();
 
-// === УЛУЧШЕННЫЙ СКРИМЕР В МЕНЮ (каждые ~5 секунд) ===
+// Скример в меню каждые 5 секунд
 const portrait = document.getElementById('portrait');
 setInterval(() => {
     if (document.getElementById('menu-screen').style.display !== 'none') {
         portrait.src = 'baseroom-creepy.jpg';
         setTimeout(() => {
             portrait.src = 'baseroom-normal.jpg';
-        }, 280);
+        }, 300);
     }
 }, 5000);
 
@@ -159,20 +159,21 @@ const promptEl = document.getElementById('prompt');
 const noteEl = document.getElementById('note');
 const timerEl = document.getElementById('timer');
 
-let player = { x: 140, y: 300, angle: 0 };
+let player = { x: 140, y: 310, angle: 0 };
 let keys = {};
 let gameActive = false;
+let timerActive = false;
 let timerInterval = null;
 
 const chests = [
-    { x: 250, y: 200, num: "01", text: "all similarities are purely coincidental." },
+    { x: 220, y: 180, num: "01", text: "all similarities are purely coincidental." },
     { x: 420, y: 380, num: "02", text: "base will change the world\ndeployer is a robot not real human" },
-    { x: 680, y: 180, num: "03", text: "brian Brian is a Reptilian" },
-    { x: 820, y: 340, num: "04", text: "When this $fnab token reaches a 1M market cap,\nsomething terrible will happen." },
-    { x: 520, y: 160, num: "05", text: "brian is coming" }
+    { x: 680, y: 160, num: "03", text: "brian Brian is a Reptilian" },
+    { x: 850, y: 340, num: "04", text: "When this $fnab token reaches a 1M market cap,\nsomething terrible will happen." },
+    { x: 520, y: 140, num: "05", text: "brian is coming" }
 ];
 
-const wheelchairGuy = { x: 880, y: 410 };
+const wheelchairGuy = { x: 920, y: 410 };
 
 window.addEventListener('keydown', e => keys[e.code] = true);
 window.addEventListener('keyup', e => keys[e.code] = false);
@@ -190,13 +191,13 @@ function drawRoom() {
 
 function drawFlashlight() {
     const grad = ctx.createRadialGradient(player.x, player.y, 45,
-        player.x + Math.cos(player.angle)*480, player.y + Math.sin(player.angle)*480, 520);
+        player.x + Math.cos(player.angle)*500, player.y + Math.sin(player.angle)*500, 550);
     grad.addColorStop(0, 'rgba(255,245,170,0.97)');
     grad.addColorStop(0.45, 'rgba(255,215,90,0.38)');
     grad.addColorStop(1, 'rgba(160,120,30,0)');
     ctx.save();
     ctx.beginPath();
-    ctx.arc(player.x, player.y, 460, player.angle - 0.58, player.angle + 0.58);
+    ctx.arc(player.x, player.y, 500, player.angle - 0.58, player.angle + 0.58);
     ctx.fillStyle = grad;
     ctx.fill();
     ctx.restore();
@@ -233,8 +234,7 @@ function drawChest(c) {
 }
 
 function drawWheelchairGuy() {
-    // Используем твою картинку liquid.png
-    // (пока рисуем стилизованно, но можно заменить на реальное изображение)
+    // liquid.png
     ctx.fillStyle = '#333';
     ctx.fillRect(wheelchairGuy.x-28, wheelchairGuy.y-8, 56, 18);
     ctx.fillStyle = '#444';
@@ -242,7 +242,6 @@ function drawWheelchairGuy() {
     ctx.fillStyle = '#ffddaa';
     ctx.fillRect(wheelchairGuy.x-12, wheelchairGuy.y-52, 24, 22);
     
-    // Светящаяся капля
     ctx.fillStyle = '#00ffff';
     ctx.beginPath();
     ctx.arc(wheelchairGuy.x+12, wheelchairGuy.y-68, 8, 0, Math.PI*2);
@@ -250,11 +249,11 @@ function drawWheelchairGuy() {
 }
 
 function startReturnTimer() {
+    if (timerActive) return;   // таймер запускается только один раз
+    timerActive = true;
     let time = 30;
     timerEl.textContent = `00:${time}`;
     timerEl.style.display = 'block';
-
-    if (timerInterval) clearInterval(timerInterval);
 
     timerInterval = setInterval(() => {
         time--;
@@ -315,6 +314,7 @@ document.getElementById('new-game').addEventListener('click', () => {
     document.getElementById('menu-screen').style.display = 'none';
     document.getElementById('game-screen').style.display = 'block';
     gameActive = true;
+    timerActive = false;
     player.x = 150; player.y = 300;
     gameLoop();
 });
