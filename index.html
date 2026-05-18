@@ -99,19 +99,18 @@ setInterval(() => {
     }
 }, 7200);
 
-// ====================== DINO-STYLE МИНИ-ИГРА ======================
+// ====================== ИГРА ======================
 const canvas = document.getElementById('game-canvas');
 const ctx = canvas.getContext('2d');
 const levelEl = document.getElementById('level');
 const timerEl = document.getElementById('timer');
 
 let gameActive = false, currentLevel = 1, timeLeft = 45;
-let timerInterval, obstacles = [], candles = [];
+let timerInterval, obstacles = [], candles = [], pacmans = [];
 
-const player = { x: 120, y: 280, width: 45, height: 70, vy: 0, jumping: false, ducking: false, speed: 5 };
+const player = { x: 120, y: 280, width: 48, height: 72, vy: 0, jumping: false, ducking: false };
 
 let keys = {};
-let score = 0;
 
 window.addEventListener('keydown', e => keys[e.code] = true);
 window.addEventListener('keyup', e => keys[e.code] = false);
@@ -119,52 +118,26 @@ window.addEventListener('keyup', e => keys[e.code] = false);
 function drawGround() {
     ctx.fillStyle = '#1a1a1a';
     ctx.fillRect(0, 340, 800, 60);
-    ctx.fillStyle = '#333';
-    for(let i=0; i<800; i+=40) ctx.fillRect(i, 350, 25, 8);
 }
 
 function drawPlayer() {
-    const py = player.ducking ? player.y + 25 : player.y;
-    const ph = player.ducking ? 45 : player.height;
+    const py = player.ducking ? player.y + 28 : player.y;
+    const ph = player.ducking ? 44 : player.height;
 
-    // Тело
     ctx.fillStyle = '#4488ff';
-    ctx.fillRect(player.x + 10, py + 20, 28, ph - 25);
-    // Голова
+    ctx.fillRect(player.x + 10, py + 18, 30, ph - 22);
     ctx.fillStyle = '#ffddaa';
-    ctx.fillRect(player.x + 18, py + 8, 22, 22);
-    // Глаза
-    ctx.fillStyle = '#000';
-    ctx.fillRect(player.x + 24, py + 14, 6, 7);
-}
-
-function createObstacle() {
-    obstacles.push({ x: 800, y: 275, width: 45, height: 75, type: 'enemy' });
+    ctx.fillRect(player.x + 18, py + 8, 24, 24);
+    ctx.fillStyle = '#112233';
+    ctx.fillRect(player.x + 24, py + 14, 7, 8);
 }
 
 function createCandle() {
-    candles.push({ x: 800 + Math.random()*200, y: -50, width: 18, height: 45, speed: 7 + currentLevel });
+    candles.push({ x: 750 + Math.random()*150, y: -40, width: 20, height: 50, speed: 8.5 });
 }
 
-function updateObstacles() {
-    for(let i = obstacles.length-1; i >= 0; i--) {
-        let o = obstacles[i];
-        o.x -= 6 + currentLevel * 0.8;
-
-        ctx.fillStyle = '#aa2222';
-        ctx.fillRect(o.x, o.y, o.width, o.height);
-        ctx.fillStyle = '#ff0000';
-        ctx.fillRect(o.x+12, o.y+15, 10, 12); // глаза
-
-        if (o.x < -50) obstacles.splice(i,1);
-
-        // Коллизия
-        if (!(player.ducking && o.y > 280) &&
-            player.x + player.width > o.x && player.x < o.x + o.width &&
-            player.y + player.height > o.y && player.y < o.y + o.height) {
-            triggerScreamer();
-        }
-    }
+function createPacman() {
+    pacmans.push({ x: 820, y: 275, size: 38, speed: 7.5 + currentLevel*1.2, mouth: 0 });
 }
 
 function updateCandles() {
@@ -172,16 +145,43 @@ function updateCandles() {
         let c = candles[i];
         c.y += c.speed;
 
-        ctx.fillStyle = '#ff2222';
+        ctx.fillStyle = '#ff0000';
         ctx.fillRect(c.x, c.y, c.width, c.height);
-        ctx.fillStyle = '#ffdd00';
-        ctx.fillRect(c.x+4, c.y+8, 10, 12);
+        ctx.fillStyle = '#ffaa00';
+        ctx.fillRect(c.x+5, c.y+8, 10, 14);
 
-        if (c.y > 400) candles.splice(i,1);
+        if (c.y > 420) candles.splice(i,1);
 
-        // Коллизия
         if (player.x + player.width > c.x && player.x < c.x + c.width &&
             player.y + player.height > c.y && player.y < c.y + c.height) {
+            triggerScreamer();
+        }
+    }
+}
+
+function updatePacmans() {
+    for(let i = pacmans.length-1; i >= 0; i--) {
+        let p = pacmans[i];
+        p.x -= p.speed;
+        p.mouth = Math.sin(Date.now()/60) * 0.8 + 0.6; // анимация рта
+
+        // Рисуем Pac-Man
+        ctx.fillStyle = '#ffdd00';
+        ctx.beginPath();
+        ctx.arc(p.x + p.size/2, p.y + p.size/2, p.size/2, p.mouth*Math.PI, (2-p.mouth)*Math.PI);
+        ctx.lineTo(p.x + p.size/2, p.y + p.size/2);
+        ctx.fill();
+
+        ctx.fillStyle = '#000';
+        ctx.beginPath();
+        ctx.arc(p.x + p.size*0.65, p.y + p.size*0.45, 5, 0, Math.PI*2);
+        ctx.fill();
+
+        if (p.x < -50) pacmans.splice(i,1);
+
+        // Коллизия
+        if (player.x + player.width > p.x && player.x < p.x + p.size &&
+            player.y + player.height > p.y && player.y < p.y + p.size) {
             triggerScreamer();
         }
     }
@@ -195,15 +195,14 @@ function gameLoop() {
     drawGround();
 
     // Управление
-    if ((keys['ArrowDown'] || keys['KeyS'])) player.ducking = true;
-    else player.ducking = false;
+    player.ducking = (keys['ArrowDown'] || keys['KeyS']);
 
     if ((keys['Space'] || keys['ArrowUp']) && !player.jumping) {
-        player.vy = -18;
+        player.vy = -17.5;
         player.jumping = true;
     }
 
-    player.vy += 0.9;
+    player.vy += 0.85;
     player.y += player.vy;
 
     if (player.y >= 280) {
@@ -213,20 +212,21 @@ function gameLoop() {
     }
 
     drawPlayer();
-    updateObstacles();
     updateCandles();
+    updatePacmans();
 
     requestAnimationFrame(gameLoop);
 }
 
-// Полноэкранный скример во время игры
-function randomScreamer() {
+// Микро-скримеры
+function microScreamer() {
     if (!gameActive) return;
-    const screamer = document.getElementById('screamer');
-    screamer.style.display = 'block';
-    setTimeout(() => screamer.style.display = 'none', 520);
+    const s = document.getElementById('screamer');
+    s.style.display = 'block';
+    setTimeout(() => s.style.display = 'none', 420);
 }
 
+// Запуск игры
 function startGame() {
     document.getElementById('menu-screen').style.display = 'none';
     document.getElementById('game-screen').style.display = 'flex';
@@ -236,7 +236,7 @@ function startGame() {
     currentLevel = 1;
     timeLeft = 45;
     player.y = 280;
-    obstacles = []; candles = [];
+    obstacles = []; candles = []; pacmans = [];
 
     levelEl.textContent = 1;
     timerEl.textContent = timeLeft;
@@ -247,16 +247,14 @@ function startGame() {
         if (timeLeft <= 0) {
             currentLevel++;
             if (currentLevel > 5) winGame();
-            else {
-                levelEl.textContent = currentLevel;
-                timeLeft = 45;
-            }
+            else levelEl.textContent = currentLevel;
+            timeLeft = 45;
         }
     }, 1000);
 
-    setInterval(() => { if(gameActive) createObstacle(); }, 1100);
-    setInterval(() => { if(gameActive) createCandle(); }, 650);
-    setInterval(randomScreamer, 15000);
+    setInterval(() => { if(gameActive) createCandle(); }, 380);        // часто
+    setInterval(() => { if(gameActive) createPacman(); }, 2400);       // Pac-Man
+    setInterval(microScreamer, 10200);                                 // микро-скримеры
 
     gameLoop();
 }
@@ -275,7 +273,7 @@ function winGame() {
     clearInterval(timerInterval);
     ctx.fillStyle = '#aaffaa';
     ctx.font = 'bold 48px Courier New';
-    ctx.fillText('ALL NIGHTS SURVIVED!', 140, 200);
+    ctx.fillText('YOU SURVIVED 5 NIGHTS!', 130, 200);
 }
 
 document.getElementById('new-game').addEventListener('click', startGame);
