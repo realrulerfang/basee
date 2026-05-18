@@ -10,16 +10,18 @@
         overflow: hidden;
         font-family: 'Courier New', monospace;
         height: 100vh;
-        color: #0f0;
+        color: #00ff40;
     }
 
     .crt {
         position: relative;
         width: 100vw;
         height: 100vh;
-        border: 30px solid #0a0a0a;
-        box-shadow: 0 0 80px rgba(0, 255, 70, 0.4),
-                    inset 0 0 120px rgba(0,0,0,0.95);
+        background: #000;
+        border: 40px solid #0a0a0a;
+        box-shadow: 
+            0 0 90px rgba(0, 255, 80, 0.35),
+            inset 0 0 140px rgba(0,0,0,0.98);
         overflow: hidden;
     }
 
@@ -27,19 +29,20 @@
         position: relative;
         width: 100%;
         height: 100%;
-        background: #050505;
         display: flex;
         align-items: center;
-        justify-content: center;
+        justify-content: flex-end;
+        padding-right: 8%;
     }
 
     canvas#noise {
         position: absolute;
         top: 0; left: 0;
         width: 100%; height: 100%;
-        opacity: 0.35;
+        opacity: 0.45;
         mix-blend-mode: screen;
         pointer-events: none;
+        z-index: 1;
     }
 
     .scanlines {
@@ -49,13 +52,13 @@
         background: repeating-linear-gradient(
             to bottom,
             transparent 0px,
-            transparent 3px,
-            rgba(0, 255, 80, 0.12) 3px,
-            rgba(0, 255, 80, 0.12) 6px
+            transparent 4px,
+            rgba(0, 255, 80, 0.08) 4px,
+            rgba(0, 255, 80, 0.08) 8px
         );
         pointer-events: none;
-        animation: scan 8s linear infinite;
-        z-index: 2;
+        animation: scan 7s linear infinite;
+        z-index: 3;
     }
 
     @keyframes scan { 
@@ -63,63 +66,73 @@
         100% { transform: translateY(100%); } 
     }
 
+    .vignette {
+        position: absolute;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        box-shadow: inset 0 0 180px #000;
+        z-index: 4;
+        pointer-events: none;
+    }
+
     .content {
         position: relative;
         z-index: 5;
         text-align: center;
+        margin-right: 5%;
     }
 
     .title {
-        font-size: 5.5rem;
-        letter-spacing: 12px;
+        font-size: 4.8rem;
+        letter-spacing: 14px;
         text-transform: uppercase;
-        color: #00ff44;
-        text-shadow: 0 0 20px #00ff44,
-                     0 0 40px #00aa33;
-        margin-bottom: 40px;
-        animation: glitch 1.5s infinite;
+        color: #00ff40;
+        text-shadow: 0 0 25px #00ff40,
+                     0 0 50px #008822;
+        margin-bottom: 30px;
+        animation: glitch 1.8s infinite;
     }
 
     .portrait {
-        width: 380px;
-        height: 380px;
+        width: 460px;
+        height: 460px;
         object-fit: cover;
-        border: 12px solid #112211;
-        box-shadow: 0 0 40px #00ff44,
-                    inset 0 0 30px #000;
-        transition: all 0.2s;
+        border: 14px solid #112211;
+        box-shadow: 0 0 50px #00ff40,
+                    inset 0 0 40px #000;
+        background: #000;
         image-rendering: crisp-edges;
     }
 
     .menu {
-        margin-top: 50px;
-        font-size: 2rem;
-        line-height: 2.4rem;
+        margin-top: 60px;
+        font-size: 2.1rem;
+        line-height: 2.6rem;
     }
 
     .menu-item {
-        cursor: pointer;
-        padding: 8px 40px;
+        padding: 10px 50px;
         display: inline-block;
-        transition: all 0.2s;
+        cursor: pointer;
+        transition: 0.2s;
     }
 
     .menu-item:hover {
-        background: rgba(0, 255, 70, 0.15);
-        color: #ff4444;
-        text-shadow: 0 0 15px #ff4444;
+        color: #ff3333;
+        text-shadow: 0 0 20px #ff3333;
+        background: rgba(255, 30, 30, 0.1);
     }
 
     .static-text {
-        margin-top: 60px;
-        font-size: 1.1rem;
-        opacity: 0.7;
-        letter-spacing: 3px;
+        margin-top: 70px;
+        font-size: 1.2rem;
+        letter-spacing: 4px;
+        opacity: 0.75;
     }
 
     @keyframes glitch {
-        0%, 100% { text-shadow: 3px 3px #ff00ff, -3px -3px #00ffff; }
-        20% { text-shadow: -3px -3px #ff00ff, 3px 3px #00ffff; }
+        0%,100% { text-shadow: 4px 4px #ff00ff, -4px -4px #00ffff; }
+        25% { text-shadow: -4px -4px #ff00ff, 4px 4px #00ffff; }
     }
 </style>
 </head>
@@ -139,15 +152,16 @@
                 <div class="menu-item">>> CONTINUE</div>
             </div>
             
-            <div class="static-text">SYSTEM ONLINE • NIGHT 1</div>
+            <div class="static-text">NIGHT 1 • SYSTEM BOOT SEQUENCE</div>
         </div>
 
         <div class="scanlines"></div>
+        <div class="vignette"></div>
     </div>
 </div>
 
 <script>
-// Canvas noise (FNAF стиль)
+// Canvas noise — плотный FNAF-стиль
 const canvas = document.getElementById('noise');
 const ctx = canvas.getContext('2d');
 
@@ -164,23 +178,22 @@ function drawNoise() {
     for (let i = 0; i < data.length; i += 4) {
         const noise = Math.random() * 255;
         data[i] = data[i+1] = data[i+2] = noise;
-        data[i+3] = 55;
+        data[i+3] = 58;
     }
     ctx.putImageData(imageData, 0, 0);
     requestAnimationFrame(drawNoise);
 }
 drawNoise();
 
-// Жуткая фотка каждые ~5 секунд
+// Жуткая версия каждые 5 секунд
 const portrait = document.getElementById('portrait');
 
 setInterval(() => {
     portrait.src = 'baseroom-creepy.jpg';
-    
     setTimeout(() => {
         portrait.src = 'baseroom-normal.jpg';
-    }, 380 + Math.random() * 220); // держится 0.38–0.6 секунды
-}, 5000); // каждые 5 секунд
+    }, 420 + Math.random() * 180);
+}, 5000);
 </script>
 
 </body>
