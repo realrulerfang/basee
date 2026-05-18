@@ -5,297 +5,230 @@
 <title>5 Nights with Brian</title>
 <style>
     * { margin:0; padding:0; box-sizing:border-box; }
-    body { background:#000; overflow:hidden; font-family:'Courier New', monospace; height:100vh; color:#aaffaa; }
+    body {
+        background: #000;
+        overflow: hidden;
+        font-family: 'Courier New', monospace;
+        height: 100vh;
+        color: #aaffaa;
+    }
     .crt {
-        position:relative; width:100vw; height:100vh; background:#000;
-        border:20px solid #111; box-shadow:inset 0 0 200px #000; overflow:hidden;
+        position: relative;
+        width: 100vw;
+        height: 100vh;
+        background: #000;
+        overflow: hidden;
     }
     canvas#noise, .scanlines {
-        position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:30;
+        position: absolute;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        pointer-events: none;
+        z-index: 5;
     }
     .scanlines {
-        background:repeating-linear-gradient(to bottom, transparent 0px, transparent 2px, rgba(255,255,255,0.08) 2px, rgba(255,255,255,0.08) 4px);
-        animation:scan 4s linear infinite;
+        background: repeating-linear-gradient(to bottom, transparent 0px, transparent 2px, rgba(255,255,255,0.06) 2px, rgba(255,255,255,0.06) 4px);
+        animation: scan 4s linear infinite;
     }
-    @keyframes scan { 0%{transform:translateY(-100%)} 100%{transform:translateY(100%)} }
+    @keyframes scan { 0% { transform: translateY(-100%); } 100% { transform: translateY(100%); } }
 
-    .portrait {
-        position:absolute; right:0; top:50%; transform:translateY(-50%);
-        width:58%; height:100%; object-fit:cover; z-index:1;
-        filter:contrast(1.2) brightness(0.85); background:#000;
+    .content {
+        position: absolute;
+        top: 35%;
+        left: 18%;
+        z-index: 10;
     }
-
-    .content, #game-screen { position:relative; z-index:10; }
-    .title { font-size:4.2rem; letter-spacing:10px; text-transform:uppercase; text-shadow:0 0 20px #aaffaa; margin-bottom:40px; }
-    .menu-item { font-size:2.1rem; line-height:2.6rem; padding:8px 0; cursor:pointer; transition:0.2s; }
-    .menu-item:hover { color:#ff6666; text-shadow:0 0 15px #ff4444; }
+    .title {
+        font-size: 4.5rem;
+        letter-spacing: 12px;
+        text-transform: uppercase;
+        text-shadow: 0 0 25px #aaffaa;
+        margin-bottom: 60px;
+    }
+    .menu-item {
+        font-size: 2.3rem;
+        line-height: 3rem;
+        padding: 10px 0;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+    .menu-item:hover {
+        color: #ff6666;
+        text-shadow: 0 0 20px #ff4444;
+    }
 
     #game-screen {
-        display:none; flex-direction:column; justify-content:center; align-items:center;
-        height:100%; background:rgba(0,0,0,0.92);
+        display: none;
+        position: absolute;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        z-index: 20;
+        background: #000;
     }
-    #game-canvas { image-rendering:pixelated; border:6px solid #222; box-shadow:0 0 40px #000; background:#111; }
-    #game-info { margin-top:12px; font-size:1.8rem; }
-
-    .game-over-screen {
-        position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95);
-        display:none; flex-direction:column; justify-content:center; align-items:center; z-index:50; color:#ff4444;
-    }
-    .back-btn {
-        margin-top:40px; padding:12px 30px; font-size:1.8rem;
-        background:#111; border:3px solid #aaffaa; color:#aaffaa; cursor:pointer;
-    }
-    .back-btn:hover { background:#aaffaa; color:#000; }
 </style>
 </head>
 <body>
 <div class="crt">
     <canvas id="noise"></canvas>
-    <img id="portrait" src="baseroom-normal.jpg" class="portrait" alt="">
 
+    <!-- Главное меню -->
     <div class="content" id="menu-screen">
         <div class="title">5 NIGHTS WITH BRIAN</div>
         <div class="menu">
             <div class="menu-item" id="new-game">>> NEW GAME</div>
             <div class="menu-item" id="continue">>> CONTINUE</div>
         </div>
-        <div class="static-text">NIGHT 1</div>
     </div>
 
+    <!-- Новая игра: Тёмная комната -->
     <div id="game-screen">
-        <canvas id="game-canvas" width="800" height="400"></canvas>
-        <div id="game-info">LEVEL <span id="level">1</span> | TIME: <span id="timer">45</span>s</div>
-    </div>
-
-    <div class="game-over-screen" id="game-over-screen">
-        <img id="screamer" src="baseroom-creepy.jpg" style="width:100%; height:100%; object-fit:cover; display:none;">
-        <div style="font-size:6rem; margin-bottom:30px;" id="end-text">GAME OVER</div>
-        <div class="back-btn" id="back-btn">BACK TO MENU</div>
+        <canvas id="game-canvas" width="1000" height="600"></canvas>
     </div>
 
     <div class="scanlines"></div>
 </div>
 
 <script>
-// CRT + Menu Screamer
+// CRT Noise
 const noiseCanvas = document.getElementById('noise');
 const nCtx = noiseCanvas.getContext('2d');
-function resizeNoise(){ noiseCanvas.width = window.innerWidth; noiseCanvas.height = window.innerHeight; }
-resizeNoise(); window.addEventListener('resize', resizeNoise);
-function drawNoise(){
+function resizeNoise() {
+    noiseCanvas.width = window.innerWidth;
+    noiseCanvas.height = window.innerHeight;
+}
+resizeNoise();
+window.addEventListener('resize', resizeNoise);
+
+function drawNoise() {
     const data = nCtx.createImageData(noiseCanvas.width, noiseCanvas.height);
     const buf = data.data;
-    for(let i=0;i<buf.length;i+=4){ const val=Math.random()*255; buf[i]=buf[i+1]=buf[i+2]=val; buf[i+3]=65; }
-    nCtx.putImageData(data,0,0); requestAnimationFrame(drawNoise);
+    for (let i = 0; i < buf.length; i += 4) {
+        const val = Math.random() * 255;
+        buf[i] = buf[i+1] = buf[i+2] = val;
+        buf[i+3] = 55;
+    }
+    nCtx.putImageData(data, 0, 0);
+    requestAnimationFrame(drawNoise);
 }
 drawNoise();
 
-const portrait = document.getElementById('portrait');
+// Скример в меню
+const portrait = document.getElementById('portrait') || {src: ''};
 setInterval(() => {
     if (document.getElementById('menu-screen').style.display !== 'none') {
-        portrait.src = 'baseroom-creepy.jpg';
-        setTimeout(() => portrait.src = 'baseroom-normal.jpg', 380);
+        // можно добавить картинку если нужно
     }
-}, 7200);
+}, 7000);
 
-// ====================== ИГРА ======================
+// ====================== НОВАЯ ИГРА ======================
 const canvas = document.getElementById('game-canvas');
 const ctx = canvas.getContext('2d');
-const levelEl = document.getElementById('level');
-const timerEl = document.getElementById('timer');
 
-let gameActive = false, currentLevel = 1, timeLeft = 45;
-let timerInterval, enemies = [], projectiles = [];
-
-const player = { x: 120, y: 280, width: 48, height: 72, vy: 0, jumping: false, ducking: false };
-
+let player = { x: 500, y: 300, angle: 0 };
+let chest = { x: 750, y: 180 };
 let keys = {};
-let enemySpawnCounter = 0;
+let gameActive = false;
 
 window.addEventListener('keydown', e => keys[e.code] = true);
 window.addEventListener('keyup', e => keys[e.code] = false);
 
-function drawGround() {
-    ctx.fillStyle = '#1a1a1a';
-    ctx.fillRect(0, 340, 800, 60);
+canvas.addEventListener('mousemove', (e) => {
+    if (!gameActive) return;
+    const rect = canvas.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    const my = e.clientY - rect.top;
+    player.angle = Math.atan2(my - player.y, mx - player.x);
+});
+
+function drawDarkRoom() {
+    ctx.fillStyle = '#050505';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Пол
+    ctx.fillStyle = '#111';
+    ctx.fillRect(0, canvas.height/2, canvas.width, canvas.height/2);
+
+    // Стены (простая имитация 3D)
+    ctx.fillStyle = '#0a0a0a';
+    ctx.fillRect(0, 0, canvas.width, canvas.height/2);
+}
+
+function drawFlashlight() {
+    const gradient = ctx.createRadialGradient(
+        player.x, player.y, 30,
+        player.x + Math.cos(player.angle)*300, player.y + Math.sin(player.angle)*300, 280
+    );
+    
+    gradient.addColorStop(0, 'rgba(255, 240, 180, 0.95)');
+    gradient.addColorStop(0.4, 'rgba(255, 220, 100, 0.45)');
+    gradient.addColorStop(1, 'rgba(255, 200, 60, 0)');
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(player.x, player.y);
+    ctx.arc(player.x, player.y, 320, player.angle - 0.6, player.angle + 0.6);
+    ctx.lineTo(player.x, player.y);
+    ctx.fillStyle = gradient;
+    ctx.fill();
+    ctx.restore();
+}
+
+function drawChest() {
+    const dx = chest.x - player.x;
+    const dy = chest.y - player.y;
+    const distance = Math.sqrt(dx*dx + dy*dy);
+    
+    if (distance < 280) {
+        ctx.fillStyle = '#d4a017';
+        ctx.fillRect(chest.x - 25, chest.y - 20, 50, 40);
+        ctx.fillStyle = '#8b5a00';
+        ctx.fillRect(chest.x - 20, chest.y - 25, 40, 12);
+    }
 }
 
 function drawPlayer() {
-    const py = player.ducking ? player.y + 28 : player.y;
-    const ph = player.ducking ? 44 : player.height;
-
-    ctx.fillStyle = '#224488';
-    ctx.fillRect(player.x + 14, py + 50, 9, 18);
-    ctx.fillRect(player.x + 27, py + 50, 9, 18);
-    ctx.fillStyle = '#3366dd';
-    ctx.fillRect(player.x + 10, py + 22, 30, 32);
-    ctx.fillStyle = '#ffddaa';
-    ctx.fillRect(player.x + 17, py + 8, 24, 24);
-    ctx.fillStyle = '#112233';
-    ctx.fillRect(player.x + 23, py + 15, 7, 8);
-}
-
-function drawEnemy(e) {
-    ctx.fillStyle = '#552222';
-    ctx.fillRect(e.x + 12, e.y + 52, 10, 20);
-    ctx.fillRect(e.x + 28, e.y + 52, 10, 20);
-    ctx.fillStyle = '#992222';
-    ctx.fillRect(e.x + 9, e.y + 25, 32, 32);
-    ctx.fillRect(e.x + 5, e.y + 32, 8, 20);
-    ctx.fillRect(e.x + 37, e.y + 32, 8, 20);
-    ctx.fillStyle = '#662222';
-    ctx.fillRect(e.x + 13, e.y + 10, 26, 22);
-    ctx.fillStyle = '#ff0000';
-    ctx.fillRect(e.x + 19, e.y + 16, 7, 8);
-    ctx.fillRect(e.x + 28, e.y + 16, 7, 8);
-}
-
-function createEnemy() {
-    const isThrower = (enemySpawnCounter % 3 === 0);
-    enemies.push({
-        x: 850,
-        y: 275,
-        width: 50,
-        height: 75,
-        speed: 4.2 + currentLevel * 0.5,
-        thrower: isThrower,
-        throwCooldown: 0
-    });
-    enemySpawnCounter++;
-}
-
-function updateEnemies() {
-    for(let i = enemies.length-1; i >= 0; i--) {
-        let e = enemies[i];
-        e.x -= e.speed;
-
-        drawEnemy(e);
-
-        if (e.thrower) {
-            e.throwCooldown--;
-            if (e.throwCooldown <= 0 && e.x < 580 && e.x > 280) {
-                projectiles.push({ x: e.x + 8, y: e.y + 37, width: 26, height: 7 });
-                e.throwCooldown = 110;
-            }
-        }
-
-        if (e.x < -70) enemies.splice(i,1);
-
-        if (player.x + player.width > e.x && player.x < e.x + e.width &&
-            player.y + player.height > e.y && player.y < e.y + e.height) {
-            triggerScreamer();
-        }
-    }
-}
-
-function updateProjectiles() {
-    for(let i = projectiles.length-1; i >= 0; i--) {
-        let p = projectiles[i];
-        p.x -= 13;
-
-        ctx.fillStyle = '#ddd';
-        ctx.fillRect(p.x, p.y, p.width, p.height);
-
-        if (p.x < -40) projectiles.splice(i,1);
-
-        if (!player.ducking && 
-            player.x + player.width > p.x && player.x < p.x + p.width &&
-            player.y + player.height > p.y - 5 && player.y < p.y + p.height + 15) {
-            triggerScreamer();
-        }
-    }
+    ctx.fillStyle = '#44aaff';
+    ctx.fillRect(player.x - 12, player.y - 18, 24, 36);
 }
 
 function gameLoop() {
     if (!gameActive) return;
 
-    ctx.fillStyle = '#0f0f0f';
-    ctx.fillRect(0, 0, 800, 400);
-    drawGround();
+    drawDarkRoom();
 
-    player.ducking = (keys['ArrowDown'] || keys['KeyS']);
-
-    if ((keys['Space'] || keys['ArrowUp']) && !player.jumping) {
-        player.vy = -19.5;        // ← СИЛЬНЫЙ ПРЫЖОК
-        player.jumping = true;
+    // Движение
+    const speed = 5.5;
+    if (keys['KeyW'] || keys['ArrowUp']) {
+        player.x += Math.cos(player.angle) * speed;
+        player.y += Math.sin(player.angle) * speed;
     }
-
-    player.vy += 0.82;
-    player.y += player.vy;
-
-    if (player.y >= 280) {
-        player.y = 280;
-        player.vy = 0;
-        player.jumping = false;
+    if (keys['KeyS'] || keys['ArrowDown']) {
+        player.x -= Math.cos(player.angle) * speed * 0.7;
+        player.y -= Math.sin(player.angle) * speed * 0.7;
     }
+    if (keys['KeyA'] || keys['ArrowLeft']) player.x -= speed * 0.9;
+    if (keys['KeyD'] || keys['ArrowRight']) player.x += speed * 0.9;
 
+    // Ограничения
+    player.x = Math.max(40, Math.min(canvas.width - 40, player.x));
+    player.y = Math.max(40, Math.min(canvas.height - 40, player.y));
+
+    drawFlashlight();
+    drawChest();
     drawPlayer();
-    updateEnemies();
-    updateProjectiles();
 
     requestAnimationFrame(gameLoop);
 }
 
-function ingameScreamer() {
-    if (!gameActive) return;
-    const s = document.getElementById('screamer');
-    s.style.display = 'block';
-    setTimeout(() => s.style.display = 'none', 300);
-}
-
-function startGame() {
+document.getElementById('new-game').addEventListener('click', () => {
     document.getElementById('menu-screen').style.display = 'none';
-    document.getElementById('game-screen').style.display = 'flex';
-    document.getElementById('game-over-screen').style.display = 'none';
-
+    document.getElementById('game-screen').style.display = 'block';
     gameActive = true;
-    currentLevel = 1;
-    timeLeft = 45;
-    player.y = 280;
-    enemies = []; projectiles = []; enemySpawnCounter = 0;
-
-    levelEl.textContent = 1;
-    timerEl.textContent = timeLeft;
-
-    timerInterval = setInterval(() => {
-        timeLeft--;
-        timerEl.textContent = timeLeft;
-        if (timeLeft <= 0) {
-            currentLevel++;
-            if (currentLevel > 5) winGame();
-            else levelEl.textContent = currentLevel;
-            timeLeft = 45;
-        }
-    }, 1000);
-
-    setInterval(() => { if(gameActive) createEnemy(); }, 1350); // ← увеличил интервал
-    setInterval(ingameScreamer, 15000);
-
     gameLoop();
-}
+});
 
-function triggerScreamer() {
-    gameActive = false;
-    clearInterval(timerInterval);
-    const goScreen = document.getElementById('game-over-screen');
-    document.getElementById('screamer').style.display = 'block';
-    goScreen.style.display = 'flex';
-    setTimeout(() => document.getElementById('screamer').style.display = 'none', 650);
-}
-
-function winGame() {
-    gameActive = false;
-    clearInterval(timerInterval);
-    ctx.fillStyle = '#aaffaa';
-    ctx.font = 'bold 46px Courier New';
-    ctx.fillText('YOU SURVIVED ALL NIGHTS!', 120, 200);
-}
-
-document.getElementById('new-game').addEventListener('click', startGame);
-document.getElementById('back-btn').addEventListener('click', () => {
-    document.getElementById('game-over-screen').style.display = 'none';
-    document.getElementById('game-screen').style.display = 'none';
-    document.getElementById('menu-screen').style.display = 'block';
+document.getElementById('continue').addEventListener('click', () => {
+    alert("Продолжение пока не реализовано :)");
 });
 </script>
 </body>
