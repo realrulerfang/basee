@@ -113,7 +113,7 @@
         </div>
     </div>
     <div id="game-screen">
-        <canvas id="game-canvas" width="1100" height="620"></canvas>
+        <canvas id="game-canvas" width="1100" height="620" tabindex="0"></canvas>
         <div class="prompt" id="prompt">PRESS F</div>
         <div class="note" id="note"></div>
         <div class="timer" id="timer">20</div>
@@ -137,7 +137,7 @@ function drawNoise(){
 }
 drawNoise();
 
-// Скример в меню
+// Скример
 const portrait = document.getElementById('portrait');
 setInterval(() => {
     if (document.getElementById('menu-screen').style.display !== 'none') {
@@ -161,14 +161,14 @@ let timerActive = false;
 let timerInterval = null;
 
 const chests = [
-    { x: 220, y: 140, num: "01", text: "all similarities are purely coincidental." },
-    { x: 580, y: 480, num: "02", text: "base will change the world\ndeployer is a robot not real human" },
-    { x: 920, y: 160, num: "03", text: "brian Brian is a Reptilian" },
-    { x: 280, y: 460, num: "04", text: "When this $fnab token reaches a 1M market cap,\nsomething terrible will happen." },
-    { x: 820, y: 340, num: "05", text: "Brian is coming" }
+    { x: 180, y: 120, num: "01", text: "all similarities are purely coincidental." },
+    { x: 480, y: 510, num: "02", text: "base will change the world\ndeployer is a robot not real human" },
+    { x: 950, y: 130, num: "03", text: "brian Brian is a Reptilian" },
+    { x: 650, y: 480, num: "04", text: "When this $fnab token reaches a 1M market cap,\nsomething terrible will happen." },
+    { x: 820, y: 280, num: "05", text: "Brian is coming" }
 ];
 
-const liquidGuy = { x: 920, y: 410 };
+const liquidGuy = { x: 980, y: 390 };
 
 window.addEventListener('keydown', e => keys[e.code] = true);
 window.addEventListener('keyup', e => keys[e.code] = false);
@@ -230,10 +230,10 @@ function drawChest(c) {
 
 function drawLiquidGuy() {
     if (liquidImg.complete) {
-        ctx.drawImage(liquidImg, liquidGuy.x - 48, liquidGuy.y - 92, 96, 125);
+        ctx.drawImage(liquidImg, liquidGuy.x - 50, liquidGuy.y - 95, 100, 130);
     } else {
-        ctx.fillStyle = '#333';
-        ctx.fillRect(liquidGuy.x-28, liquidGuy.y-8, 56, 18);
+        ctx.fillStyle = '#ff00ff';
+        ctx.fillRect(liquidGuy.x-30, liquidGuy.y-40, 60, 80);
     }
 }
 
@@ -268,9 +268,9 @@ function gameLoop() {
     if (keys['KeyA'] || keys['ArrowLeft']) player.x -= speed;
     if (keys['KeyD'] || keys['ArrowRight']) player.x += speed;
 
-    // Ограничение выхода за экран
-    player.x = Math.max(40, Math.min(1060, player.x));
-    player.y = Math.max(40, Math.min(580, player.y));
+    // Ограничение по экрану
+    player.x = Math.max(50, Math.min(1050, player.x));
+    player.y = Math.max(50, Math.min(570, player.y));
 
     chests.forEach(c => drawChest(c));
     drawLiquidGuy();
@@ -288,8 +288,8 @@ function gameLoop() {
         }
     });
 
-    if (dist(liquidGuy) < 95) near = true;
-    if (dist(liquidGuy) < 95 && keys['KeyF']) {
+    if (dist(liquidGuy) < 100) near = true;
+    if (dist(liquidGuy) < 100 && keys['KeyF']) {
         noteEl.textContent = "BUY $LIQUID";
         noteEl.style.display = 'block';
         startReturnTimer();
@@ -308,6 +308,8 @@ document.getElementById('new-game').addEventListener('click', () => {
     timerActive = false;
     player.x = 140; 
     player.y = 310;
+    
+    canvas.focus();                    // ← Важно для клавиш
     gameLoop();
 });
 </script>
