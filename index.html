@@ -31,7 +31,6 @@
         animation: scan 4s linear infinite;
     }
     @keyframes scan { 0% { transform: translateY(-100%); } 100% { transform: translateY(100%); } }
-
     .content {
         position: absolute;
         top: 28%;
@@ -57,7 +56,6 @@
         color: #ff6666;
         text-shadow: 0 0 20px #ff4444;
     }
-
     #game-screen {
         display: none;
         position: absolute;
@@ -108,24 +106,22 @@
 <div class="crt">
     <canvas id="noise"></canvas>
     <img id="portrait" src="baseroom-normal.jpg" style="position:absolute; right:30px; top:50%; transform:translateY(-50%); width:44%; height:90%; object-fit:cover; z-index:1; filter:contrast(1.12) brightness(0.93);">
-
     <div class="content" id="menu-screen">
         <div class="title">1 NIGHT WITH BRIAN</div>
         <div class="menu">
             <div class="menu-item" id="new-game">>> NEW GAME</div>
-            <div class="menu-item" id="continue">>> CONTINUE</div>
         </div>
     </div>
-
     <div id="game-screen">
         <canvas id="game-canvas" width="1100" height="620"></canvas>
         <div class="prompt" id="prompt">PRESS F</div>
         <div class="note" id="note"></div>
-        <div class="timer" id="timer">30</div>
+        <div class="timer" id="timer">20</div>
     </div>
-
     <div class="scanlines"></div>
 </div>
+
+<img id="liquid-img" src="/home/workdir/attachments/liquid.png" style="display:none;">
 
 <script>
 // CRT + Noise
@@ -158,6 +154,7 @@ const ctx = canvas.getContext('2d');
 const promptEl = document.getElementById('prompt');
 const noteEl = document.getElementById('note');
 const timerEl = document.getElementById('timer');
+const liquidImg = document.getElementById('liquid-img');
 
 let player = { x: 140, y: 310, angle: 0 };
 let keys = {};
@@ -166,14 +163,14 @@ let timerActive = false;
 let timerInterval = null;
 
 const chests = [
-    { x: 220, y: 180, num: "01", text: "all similarities are purely coincidental." },
-    { x: 420, y: 380, num: "02", text: "base will change the world\ndeployer is a robot not real human" },
-    { x: 680, y: 160, num: "03", text: "brian Brian is a Reptilian" },
-    { x: 850, y: 340, num: "04", text: "When this $fnab token reaches a 1M market cap,\nsomething terrible will happen." },
-    { x: 520, y: 140, num: "05", text: "brian is coming" }
+    { x: 250, y: 150, num: "01", text: "all similarities are purely coincidental." },
+    { x: 520, y: 420, num: "02", text: "base will change the world\ndeployer is a robot not real human" },
+    { x: 780, y: 130, num: "03", text: "brian Brian is a Reptilian" },
+    { x: 180, y: 380, num: "04", text: "When this $fnab token reaches a 1M market cap,\nsomething terrible will happen." },
+    { x: 850, y: 280, num: "05", text: "Brian is coming" }
 ];
 
-const wheelchairGuy = { x: 920, y: 410 };
+const liquidGuy = { x: 920, y: 410 };
 
 window.addEventListener('keydown', e => keys[e.code] = true);
 window.addEventListener('keyup', e => keys[e.code] = false);
@@ -227,34 +224,28 @@ function drawChest(c) {
     ctx.fillRect(c.x-12, c.y-24, 24, 14);
     ctx.fillStyle = '#ddd';
     ctx.fillRect(c.x-6, c.y-20, 12, 6);
-    
+   
     ctx.fillStyle = '#fff';
     ctx.font = 'bold 20px Courier New';
     ctx.fillText(c.num, c.x-9, c.y-8);
 }
 
-function drawWheelchairGuy() {
-    // liquid.png
-    ctx.fillStyle = '#333';
-    ctx.fillRect(wheelchairGuy.x-28, wheelchairGuy.y-8, 56, 18);
-    ctx.fillStyle = '#444';
-    ctx.fillRect(wheelchairGuy.x-18, wheelchairGuy.y-38, 36, 32);
-    ctx.fillStyle = '#ffddaa';
-    ctx.fillRect(wheelchairGuy.x-12, wheelchairGuy.y-52, 24, 22);
-    
-    ctx.fillStyle = '#00ffff';
-    ctx.beginPath();
-    ctx.arc(wheelchairGuy.x+12, wheelchairGuy.y-68, 8, 0, Math.PI*2);
-    ctx.fill();
+function drawLiquidGuy() {
+    if (liquidImg.complete) {
+        ctx.drawImage(liquidImg, liquidGuy.x - 45, liquidGuy.y - 85, 90, 110);
+    } else {
+        // fallback
+        ctx.fillStyle = '#333';
+        ctx.fillRect(liquidGuy.x-28, liquidGuy.y-8, 56, 18);
+    }
 }
 
 function startReturnTimer() {
-    if (timerActive) return;   // таймер запускается только один раз
+    if (timerActive) return;
     timerActive = true;
-    let time = 30;
+    let time = 20;
     timerEl.textContent = `00:${time}`;
     timerEl.style.display = 'block';
-
     timerInterval = setInterval(() => {
         time--;
         timerEl.textContent = `00:${time < 10 ? '0' : ''}${time}`;
@@ -263,25 +254,25 @@ function startReturnTimer() {
             timerEl.style.display = 'none';
             document.getElementById('game-screen').style.display = 'none';
             document.getElementById('menu-screen').style.display = 'block';
+            gameActive = false;
         }
     }, 1000);
 }
 
 function gameLoop() {
     if (!gameActive) return;
-
     drawRoom();
     drawFlashlight();
     drawPlayer();
 
-    const speed = 6.2;
+    const speed = 3.8; // уменьшена скорость
     if (keys['KeyW'] || keys['ArrowUp']) player.y -= speed;
     if (keys['KeyS'] || keys['ArrowDown']) player.y += speed;
     if (keys['KeyA'] || keys['ArrowLeft']) player.x -= speed;
     if (keys['KeyD'] || keys['ArrowRight']) player.x += speed;
 
     chests.forEach(c => drawChest(c));
-    drawWheelchairGuy();
+    drawLiquidGuy();
 
     const dist = (obj) => Math.hypot(obj.x - player.x, obj.y - player.y);
     let near = false;
@@ -296,8 +287,8 @@ function gameLoop() {
         }
     });
 
-    if (dist(wheelchairGuy) < 95) near = true;
-    if (dist(wheelchairGuy) < 95 && keys['KeyF']) {
+    if (dist(liquidGuy) < 95) near = true;
+    if (dist(liquidGuy) < 95 && keys['KeyF']) {
         noteEl.textContent = "BUY $LIQUID";
         noteEl.style.display = 'block';
         startReturnTimer();
@@ -305,7 +296,6 @@ function gameLoop() {
     }
 
     promptEl.style.display = near ? 'block' : 'none';
-
     requestAnimationFrame(gameLoop);
 }
 
@@ -315,11 +305,10 @@ document.getElementById('new-game').addEventListener('click', () => {
     document.getElementById('game-screen').style.display = 'block';
     gameActive = true;
     timerActive = false;
-    player.x = 150; player.y = 300;
+    player.x = 150; 
+    player.y = 300;
     gameLoop();
 });
-
-document.getElementById('continue').addEventListener('click', () => alert("Продолжение пока не реализовано"));
 </script>
 </body>
 </html>
