@@ -137,14 +137,12 @@ function drawNoise(){
 }
 drawNoise();
 
-// Скример в меню каждые 5 секунд
+// Скример в меню
 const portrait = document.getElementById('portrait');
 setInterval(() => {
     if (document.getElementById('menu-screen').style.display !== 'none') {
         portrait.src = 'baseroom-creepy.jpg';
-        setTimeout(() => {
-            portrait.src = 'baseroom-normal.jpg';
-        }, 300);
+        setTimeout(() => { portrait.src = 'baseroom-normal.jpg'; }, 300);
     }
 }, 5000);
 
@@ -163,11 +161,11 @@ let timerActive = false;
 let timerInterval = null;
 
 const chests = [
-    { x: 250, y: 150, num: "01", text: "all similarities are purely coincidental." },
-    { x: 520, y: 420, num: "02", text: "base will change the world\ndeployer is a robot not real human" },
-    { x: 780, y: 130, num: "03", text: "brian Brian is a Reptilian" },
-    { x: 180, y: 380, num: "04", text: "When this $fnab token reaches a 1M market cap,\nsomething terrible will happen." },
-    { x: 850, y: 280, num: "05", text: "Brian is coming" }
+    { x: 220, y: 140, num: "01", text: "all similarities are purely coincidental." },
+    { x: 580, y: 480, num: "02", text: "base will change the world\ndeployer is a robot not real human" },
+    { x: 920, y: 160, num: "03", text: "brian Brian is a Reptilian" },
+    { x: 280, y: 460, num: "04", text: "When this $fnab token reaches a 1M market cap,\nsomething terrible will happen." },
+    { x: 820, y: 340, num: "05", text: "Brian is coming" }
 ];
 
 const liquidGuy = { x: 920, y: 410 };
@@ -232,9 +230,8 @@ function drawChest(c) {
 
 function drawLiquidGuy() {
     if (liquidImg.complete) {
-        ctx.drawImage(liquidImg, liquidGuy.x - 45, liquidGuy.y - 85, 90, 110);
+        ctx.drawImage(liquidImg, liquidGuy.x - 48, liquidGuy.y - 92, 96, 125);
     } else {
-        // fallback
         ctx.fillStyle = '#333';
         ctx.fillRect(liquidGuy.x-28, liquidGuy.y-8, 56, 18);
     }
@@ -265,11 +262,15 @@ function gameLoop() {
     drawFlashlight();
     drawPlayer();
 
-    const speed = 3.8; // уменьшена скорость
+    const speed = 3.8;
     if (keys['KeyW'] || keys['ArrowUp']) player.y -= speed;
     if (keys['KeyS'] || keys['ArrowDown']) player.y += speed;
     if (keys['KeyA'] || keys['ArrowLeft']) player.x -= speed;
     if (keys['KeyD'] || keys['ArrowRight']) player.x += speed;
+
+    // Ограничение выхода за экран
+    player.x = Math.max(40, Math.min(1060, player.x));
+    player.y = Math.max(40, Math.min(580, player.y));
 
     chests.forEach(c => drawChest(c));
     drawLiquidGuy();
@@ -305,8 +306,8 @@ document.getElementById('new-game').addEventListener('click', () => {
     document.getElementById('game-screen').style.display = 'block';
     gameActive = true;
     timerActive = false;
-    player.x = 150; 
-    player.y = 300;
+    player.x = 140; 
+    player.y = 310;
     gameLoop();
 });
 </script>
