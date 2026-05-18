@@ -64,6 +64,11 @@
         z-index: 20;
         background: #000;
     }
+    #game-canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+    }
     .note {
         position: absolute;
         top: 50%;
@@ -113,7 +118,7 @@
         </div>
     </div>
     <div id="game-screen">
-        <canvas id="game-canvas" width="1100" height="620" tabindex="0"></canvas>
+        <canvas id="game-canvas" tabindex="0"></canvas>
         <div class="prompt" id="prompt">PRESS F</div>
         <div class="note" id="note"></div>
         <div class="timer" id="timer">20</div>
@@ -127,13 +132,22 @@
 // CRT + Noise
 const noiseCanvas = document.getElementById('noise');
 const nCtx = noiseCanvas.getContext('2d');
-function resizeNoise(){ noiseCanvas.width = window.innerWidth; noiseCanvas.height = window.innerHeight; }
-resizeNoise(); window.addEventListener('resize', resizeNoise);
+function resizeNoise(){ 
+    noiseCanvas.width = window.innerWidth; 
+    noiseCanvas.height = window.innerHeight; 
+}
+resizeNoise(); 
+window.addEventListener('resize', resizeNoise);
 function drawNoise(){
     const data = nCtx.createImageData(noiseCanvas.width, noiseCanvas.height);
     const buf = data.data;
-    for(let i=0;i<buf.length;i+=4){ const val=Math.random()*255; buf[i]=buf[i+1]=buf[i+2]=val; buf[i+3]=55; }
-    nCtx.putImageData(data,0,0); requestAnimationFrame(drawNoise);
+    for(let i=0;i<buf.length;i+=4){ 
+        const val=Math.random()*255; 
+        buf[i]=buf[i+1]=buf[i+2]=val; 
+        buf[i+3]=55; 
+    }
+    nCtx.putImageData(data,0,0); 
+    requestAnimationFrame(drawNoise);
 }
 drawNoise();
 
@@ -154,21 +168,21 @@ const noteEl = document.getElementById('note');
 const timerEl = document.getElementById('timer');
 const liquidImg = document.getElementById('liquid-img');
 
-let player = { x: 140, y: 310, angle: 0 };
+let player = { x: 200, y: 300, angle: 0 };
 let keys = {};
 let gameActive = false;
 let timerActive = false;
 let timerInterval = null;
 
 const chests = [
-    { x: 180, y: 120, num: "01", text: "all similarities are purely coincidental." },
-    { x: 480, y: 510, num: "02", text: "base will change the world\ndeployer is a robot not real human" },
-    { x: 950, y: 130, num: "03", text: "brian Brian is a Reptilian" },
-    { x: 650, y: 480, num: "04", text: "When this $fnab token reaches a 1M market cap,\nsomething terrible will happen." },
-    { x: 820, y: 280, num: "05", text: "Brian is coming" }
+    { x: 250, y: 120, num: "01", text: "all similarities are purely coincidental." },
+    { x: 550, y: 480, num: "02", text: "base will change the world\ndeployer is a robot not real human" },
+    { x: 950, y: 150, num: "03", text: "brian Brian is a Reptilian" },
+    { x: 380, y: 510, num: "04", text: "When this $fnab token reaches a 1M market cap,\nsomething terrible will happen." },
+    { x: 820, y: 320, num: "05", text: "Brian is coming" }
 ];
 
-const liquidGuy = { x: 980, y: 390 };
+const liquidGuy = { x: 980, y: 380 };
 
 window.addEventListener('keydown', e => keys[e.code] = true);
 window.addEventListener('keyup', e => keys[e.code] = false);
@@ -179,6 +193,13 @@ canvas.addEventListener('mousemove', (e) => {
     player.angle = Math.atan2(e.clientY - rect.top - player.y, e.clientX - rect.left - player.x);
 });
 
+function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+}
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
+
 function drawRoom() {
     ctx.fillStyle = '#020202';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -186,13 +207,13 @@ function drawRoom() {
 
 function drawFlashlight() {
     const grad = ctx.createRadialGradient(player.x, player.y, 45,
-        player.x + Math.cos(player.angle)*500, player.y + Math.sin(player.angle)*500, 550);
+        player.x + Math.cos(player.angle)*800, player.y + Math.sin(player.angle)*800, 900);
     grad.addColorStop(0, 'rgba(255,245,170,0.97)');
     grad.addColorStop(0.45, 'rgba(255,215,90,0.38)');
     grad.addColorStop(1, 'rgba(160,120,30,0)');
     ctx.save();
     ctx.beginPath();
-    ctx.arc(player.x, player.y, 500, player.angle - 0.58, player.angle + 0.58);
+    ctx.arc(player.x, player.y, 900, player.angle - 0.6, player.angle + 0.6);
     ctx.fillStyle = grad;
     ctx.fill();
     ctx.restore();
@@ -230,10 +251,7 @@ function drawChest(c) {
 
 function drawLiquidGuy() {
     if (liquidImg.complete) {
-        ctx.drawImage(liquidImg, liquidGuy.x - 50, liquidGuy.y - 95, 100, 130);
-    } else {
-        ctx.fillStyle = '#ff00ff';
-        ctx.fillRect(liquidGuy.x-30, liquidGuy.y-40, 60, 80);
+        ctx.drawImage(liquidImg, liquidGuy.x - 55, liquidGuy.y - 105, 110, 145);
     }
 }
 
@@ -262,15 +280,14 @@ function gameLoop() {
     drawFlashlight();
     drawPlayer();
 
-    const speed = 3.8;
+    const speed = 4.2;
     if (keys['KeyW'] || keys['ArrowUp']) player.y -= speed;
     if (keys['KeyS'] || keys['ArrowDown']) player.y += speed;
     if (keys['KeyA'] || keys['ArrowLeft']) player.x -= speed;
     if (keys['KeyD'] || keys['ArrowRight']) player.x += speed;
 
-    // Ограничение по экрану
-    player.x = Math.max(50, Math.min(1050, player.x));
-    player.y = Math.max(50, Math.min(570, player.y));
+    player.x = Math.max(60, Math.min(canvas.width - 60, player.x));
+    player.y = Math.max(60, Math.min(canvas.height - 60, player.y));
 
     chests.forEach(c => drawChest(c));
     drawLiquidGuy();
@@ -279,8 +296,8 @@ function gameLoop() {
     let near = false;
 
     chests.forEach(chest => {
-        if (dist(chest) < 80) near = true;
-        if (dist(chest) < 80 && keys['KeyF']) {
+        if (dist(chest) < 85) near = true;
+        if (dist(chest) < 85 && keys['KeyF']) {
             noteEl.textContent = chest.text;
             noteEl.style.display = 'block';
             startReturnTimer();
@@ -288,8 +305,8 @@ function gameLoop() {
         }
     });
 
-    if (dist(liquidGuy) < 100) near = true;
-    if (dist(liquidGuy) < 100 && keys['KeyF']) {
+    if (dist(liquidGuy) < 110) near = true;
+    if (dist(liquidGuy) < 110 && keys['KeyF']) {
         noteEl.textContent = "BUY $LIQUID";
         noteEl.style.display = 'block';
         startReturnTimer();
@@ -306,10 +323,11 @@ document.getElementById('new-game').addEventListener('click', () => {
     document.getElementById('game-screen').style.display = 'block';
     gameActive = true;
     timerActive = false;
-    player.x = 140; 
-    player.y = 310;
+    player.x = 200; 
+    player.y = 300;
     
-    canvas.focus();                    // ← Важно для клавиш
+    canvas.focus();
+    resizeCanvas();
     gameLoop();
 });
 </script>
