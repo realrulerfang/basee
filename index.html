@@ -77,7 +77,7 @@
 </div>
 
 <script>
-// CRT Noise
+// CRT Noise + Menu Screamer
 const noiseCanvas = document.getElementById('noise');
 const nCtx = noiseCanvas.getContext('2d');
 function resizeNoise(){ noiseCanvas.width = window.innerWidth; noiseCanvas.height = window.innerHeight; }
@@ -90,7 +90,6 @@ function drawNoise(){
 }
 drawNoise();
 
-// Скример в меню
 const portrait = document.getElementById('portrait');
 setInterval(() => {
     if (document.getElementById('menu-screen').style.display !== 'none') {
@@ -99,7 +98,7 @@ setInterval(() => {
     }
 }, 7200);
 
-// ====================== МИНИ-ИГРА ======================
+// ====================== ИГРА ======================
 const canvas = document.getElementById('game-canvas');
 const ctx = canvas.getContext('2d');
 const levelEl = document.getElementById('level');
@@ -125,51 +124,47 @@ function drawPlayer() {
     const py = player.ducking ? player.y + 28 : player.y;
     const ph = player.ducking ? 44 : player.height;
 
-    // Ноги
     ctx.fillStyle = '#224488';
-    ctx.fillRect(player.x + 14, py + 48, 10, 18);
-    ctx.fillRect(player.x + 28, py + 48, 10, 18);
-    // Тело
+    ctx.fillRect(player.x + 14, py + 50, 9, 18); // ноги
+    ctx.fillRect(player.x + 27, py + 50, 9, 18);
     ctx.fillStyle = '#3366dd';
-    ctx.fillRect(player.x + 10, py + 20, 30, 32);
-    // Голова
+    ctx.fillRect(player.x + 10, py + 22, 30, 32); // тело
     ctx.fillStyle = '#ffddaa';
-    ctx.fillRect(player.x + 17, py + 8, 24, 24);
-    // Глаза
+    ctx.fillRect(player.x + 17, py + 8, 24, 24); // голова
     ctx.fillStyle = '#112233';
-    ctx.fillRect(player.x + 23, py + 14, 7, 8);
+    ctx.fillRect(player.x + 23, py + 15, 7, 8);
 }
 
 function drawEnemy(e) {
     // Ноги
     ctx.fillStyle = '#552222';
-    ctx.fillRect(e.x + 12, e.y + 52, 9, 20);
-    ctx.fillRect(e.x + 29, e.y + 52, 9, 20);
+    ctx.fillRect(e.x + 12, e.y + 52, 10, 20);
+    ctx.fillRect(e.x + 28, e.y + 52, 10, 20);
     // Тело
     ctx.fillStyle = '#992222';
-    ctx.fillRect(e.x + 10, e.y + 25, 30, 32);
+    ctx.fillRect(e.x + 9, e.y + 25, 32, 32);
     // Руки
-    ctx.fillRect(e.x + 6, e.y + 30, 8, 18);
-    ctx.fillRect(e.x + 36, e.y + 30, 8, 18);
-    // Голова (лысая)
+    ctx.fillRect(e.x + 5, e.y + 32, 8, 20);
+    ctx.fillRect(e.x + 37, e.y + 32, 8, 20);
+    // Голова
     ctx.fillStyle = '#662222';
     ctx.fillRect(e.x + 13, e.y + 10, 26, 22);
-    // Глаза
+    // Красные глаза
     ctx.fillStyle = '#ff0000';
-    ctx.fillRect(e.x + 19, e.y + 16, 6, 7);
-    ctx.fillRect(e.x + 29, e.y + 16, 6, 7);
+    ctx.fillRect(e.x + 19, e.y + 16, 7, 8);
+    ctx.fillRect(e.x + 28, e.y + 16, 7, 8);
 }
 
 function createEnemy() {
     const isThrower = (enemySpawnCounter % 3 === 0);
     enemies.push({
-        x: 820,
+        x: 820 + Math.random() * 80,   // небольшой разброс
         y: 275,
-        width: 48,
+        width: 50,
         height: 75,
-        speed: 5.2 + currentLevel * 0.7,
+        speed: 4.8 + currentLevel * 0.6,
         thrower: isThrower,
-        throwCooldown: isThrower ? 80 : 0
+        throwCooldown: 0
     });
     enemySpawnCounter++;
 }
@@ -181,15 +176,18 @@ function updateEnemies() {
 
         drawEnemy(e);
 
-        if (e.thrower && e.throwCooldown <= 0 && e.x < 550 && e.x > 300) {
-            projectiles.push({ x: e.x + 10, y: e.y + 35, width: 22, height: 6 });
-            e.throwCooldown = 110;
+        // Бросок ножа
+        if (e.thrower) {
+            e.throwCooldown--;
+            if (e.throwCooldown <= 0 && e.x < 600 && e.x > 250) {
+                projectiles.push({ x: e.x + 5, y: e.y + 38, width: 26, height: 7 });
+                e.throwCooldown = 95;
+            }
         }
-        if (e.thrower) e.throwCooldown--;
 
-        if (e.x < -60) enemies.splice(i,1);
+        if (e.x < -70) enemies.splice(i,1);
 
-        // Коллизия с игроком
+        // Коллизия
         if (player.x + player.width > e.x && player.x < e.x + e.width &&
             player.y + player.height > e.y && player.y < e.y + e.height) {
             triggerScreamer();
@@ -200,19 +198,16 @@ function updateEnemies() {
 function updateProjectiles() {
     for(let i = projectiles.length-1; i >= 0; i--) {
         let p = projectiles[i];
-        p.x -= 11;
+        p.x -= 12;
 
-        ctx.fillStyle = '#dddddd';
+        ctx.fillStyle = '#cccccc';
         ctx.fillRect(p.x, p.y, p.width, p.height);
-        ctx.fillStyle = '#ff4444';
-        ctx.fillRect(p.x + 6, p.y - 4, 10, 14);
 
-        if (p.x < -30) projectiles.splice(i,1);
+        if (p.x < -40) projectiles.splice(i,1);
 
-        // Коллизия
-        if (!player.ducking &&
+        if (!player.ducking && 
             player.x + player.width > p.x && player.x < p.x + p.width &&
-            player.y + player.height > p.y && player.y < p.y + p.height + 10) {
+            player.y + player.height > p.y && player.y < p.y + p.height + 12) {
             triggerScreamer();
         }
     }
@@ -228,11 +223,11 @@ function gameLoop() {
     player.ducking = (keys['ArrowDown'] || keys['KeyS']);
 
     if ((keys['Space'] || keys['ArrowUp']) && !player.jumping) {
-        player.vy = -17.5;
+        player.vy = -17.8;
         player.jumping = true;
     }
 
-    player.vy += 0.85;
+    player.vy += 0.88;
     player.y += player.vy;
 
     if (player.y >= 280) {
@@ -253,7 +248,7 @@ function ingameScreamer() {
     if (!gameActive) return;
     const s = document.getElementById('screamer');
     s.style.display = 'block';
-    setTimeout(() => s.style.display = 'none', 280);
+    setTimeout(() => s.style.display = 'none', 320);
 }
 
 function startGame() {
@@ -281,8 +276,8 @@ function startGame() {
         }
     }, 1000);
 
-    setInterval(() => { if(gameActive) createEnemy(); }, 950);
-    setInterval(ingameScreamer, 15000);
+    setInterval(() => { if(gameActive) createEnemy(); }, 1100); // адекватный спавн
+    setInterval(ingameScreamer, 14800);
 
     gameLoop();
 }
@@ -300,8 +295,8 @@ function winGame() {
     gameActive = false;
     clearInterval(timerInterval);
     ctx.fillStyle = '#aaffaa';
-    ctx.font = 'bold 48px Courier New';
-    ctx.fillText('YOU SURVIVED 5 NIGHTS!', 130, 200);
+    ctx.font = 'bold 46px Courier New';
+    ctx.fillText('YOU SURVIVED ALL NIGHTS!', 120, 200);
 }
 
 document.getElementById('new-game').addEventListener('click', startGame);
