@@ -2,319 +2,647 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>1 Night with Brian</title>
+
 <style>
-    * { margin:0; padding:0; box-sizing:border-box; }
-    body {
-        background: #000;
-        overflow: hidden;
-        font-family: 'Courier New', monospace;
-        height: 100vh;
-        color: #aaffaa;
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    background:#000;
+    overflow:hidden;
+    font-family:'Courier New', monospace;
+    height:100vh;
+    color:#aaffaa;
+}
+
+.crt{
+    position:relative;
+    width:100vw;
+    height:100vh;
+    overflow:hidden;
+    background:#000;
+}
+
+canvas#noise,
+.scanlines{
+    position:absolute;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    pointer-events:none;
+    z-index:5;
+}
+
+.scanlines{
+    background:repeating-linear-gradient(
+        to bottom,
+        transparent 0px,
+        transparent 2px,
+        rgba(255,255,255,0.07) 2px,
+        rgba(255,255,255,0.07) 4px
+    );
+
+    animation:scan 4s linear infinite;
+}
+
+@keyframes scan{
+    0%{
+        transform:translateY(-100%);
     }
-    .crt {
-        position: relative;
-        width: 100vw;
-        height: 100vh;
-        background: #000;
-        overflow: hidden;
+
+    100%{
+        transform:translateY(100%);
     }
-    canvas#noise, .scanlines {
-        position: absolute;
-        top: 0; left: 0;
-        width: 100%; height: 100%;
-        pointer-events: none;
-        z-index: 5;
-    }
-    .scanlines {
-        background: repeating-linear-gradient(to bottom, transparent 0px, transparent 2px, rgba(255,255,255,0.07) 2px, rgba(255,255,255,0.07) 4px);
-        animation: scan 4s linear infinite;
-    }
-    @keyframes scan { 0% { transform: translateY(-100%); } 100% { transform: translateY(100%); } }
-    .content {
-        position: absolute;
-        top: 28%;
-        left: 7%;
-        z-index: 10;
-    }
-    .title {
-        font-size: 4.35rem;
-        letter-spacing: 12px;
-        text-transform: uppercase;
-        text-shadow: 0 0 25px #aaffaa;
-        margin-bottom: 65px;
-        color: #aaffaa;
-    }
-    .menu-item {
-        font-size: 2.3rem;
-        line-height: 3rem;
-        padding: 10px 0;
-        cursor: pointer;
-        transition: 0.2s;
-    }
-    .menu-item:hover {
-        color: #ff6666;
-        text-shadow: 0 0 20px #ff4444;
-    }
-    #game-screen {
-        display: none;
-        position: absolute;
-        top: 0; left: 0;
-        width: 100%; height: 100%;
-        z-index: 20;
-        background: #000;
-    }
-    #game-canvas {
-        display: block;
-        width: 100%;
-        height: 100%;
-    }
-    .note {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background: #111;
-        border: 5px solid #aaffaa;
-        padding: 45px 70px;
-        font-size: 2.3rem;
-        color: #ff4444;
-        display: none;
-        z-index: 100;
-        text-align: center;
-        box-shadow: 0 0 50px #ff0000;
-    }
-    .prompt {
-        position: absolute;
-        bottom: 80px;
-        left: 50%;
-        transform: translateX(-50%);
-        font-size: 1.9rem;
-        color: #aaffaa;
-        text-shadow: 0 0 15px #aaffaa;
-        display: none;
-        z-index: 50;
-    }
-    .timer {
-        position: absolute;
-        top: 30px;
-        left: 50%;
-        transform: translateX(-50%);
-        font-size: 2.1rem;
-        color: #ff6666;
-        display: none;
-        z-index: 60;
-    }
+}
+
+.content{
+    position:absolute;
+    top:28%;
+    left:7%;
+    z-index:10;
+}
+
+.title{
+    font-size:4.35rem;
+    letter-spacing:12px;
+    text-transform:uppercase;
+    text-shadow:0 0 25px #aaffaa;
+    margin-bottom:65px;
+}
+
+.menu-item{
+    font-size:2.3rem;
+    line-height:3rem;
+    padding:10px 0;
+    cursor:pointer;
+    transition:0.2s;
+}
+
+.menu-item:hover{
+    color:#ff6666;
+    text-shadow:0 0 20px #ff4444;
+}
+
+#game-screen{
+    display:none;
+    position:absolute;
+    inset:0;
+    z-index:20;
+    background:#000;
+}
+
+#game-canvas{
+    width:100%;
+    height:100%;
+    display:block;
+}
+
+.note{
+    position:absolute;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    background:#111;
+    border:5px solid #aaffaa;
+    padding:45px 70px;
+    font-size:2rem;
+    color:#ff4444;
+    display:none;
+    z-index:100;
+    text-align:center;
+    white-space:pre-line;
+    box-shadow:0 0 50px #ff0000;
+}
+
+.prompt{
+    position:absolute;
+    bottom:80px;
+    left:50%;
+    transform:translateX(-50%);
+    font-size:1.9rem;
+    color:#aaffaa;
+    text-shadow:0 0 15px #aaffaa;
+    display:none;
+    z-index:50;
+}
+
+.timer{
+    position:absolute;
+    top:30px;
+    left:50%;
+    transform:translateX(-50%);
+    font-size:2.1rem;
+    color:#ff6666;
+    display:none;
+    z-index:60;
+}
 </style>
 </head>
-<body>
+
+<body tabindex="0">
+
 <div class="crt">
+
     <canvas id="noise"></canvas>
-    <img id="portrait" src="baseroom-normal.jpg" style="position:absolute; right:30px; top:50%; transform:translateY(-50%); width:44%; height:90%; object-fit:cover; z-index:1; filter:contrast(1.12) brightness(0.93);">
+
+    <!-- MENU IMAGE -->
+    <img
+        id="portrait"
+        src="./baseroom-normal.jpg"
+        style="
+            position:absolute;
+            right:30px;
+            top:50%;
+            transform:translateY(-50%);
+            width:44%;
+            height:90%;
+            object-fit:cover;
+            z-index:1;
+            filter:contrast(1.12) brightness(0.93);
+        "
+    >
+
+    <!-- MENU -->
     <div class="content" id="menu-screen">
-        <div class="title">1 NIGHT WITH BRIAN</div>
-        <div class="menu">
-            <div class="menu-item" id="new-game">>> NEW GAME</div>
+
+        <div class="title">
+            1 NIGHT WITH BRIAN
         </div>
+
+        <div class="menu">
+            <div class="menu-item" id="new-game">
+                >> NEW GAME
+            </div>
+        </div>
+
     </div>
+
+    <!-- GAME -->
     <div id="game-screen">
-        <canvas id="game-canvas" tabindex="0"></canvas>
-        <div class="prompt" id="prompt">PRESS F</div>
+
+        <canvas id="game-canvas"></canvas>
+
+        <div class="prompt" id="prompt">
+            PRESS F
+        </div>
+
         <div class="note" id="note"></div>
-        <div class="timer" id="timer">20</div>
+
+        <div class="timer" id="timer">
+            00:20
+        </div>
+
     </div>
+
     <div class="scanlines"></div>
+
 </div>
 
-<img id="liquid-img" src="/home/workdir/attachments/liquid.png" style="display:none;">
+<!-- FIXED LIQUID IMAGE -->
+<img
+    id="liquid-img"
+    src="./liquid.png"
+    alt=""
+    style="display:none;"
+>
 
 <script>
-// CRT + Noise
+
+/* =========================
+   CRT NOISE
+========================= */
+
 const noiseCanvas = document.getElementById('noise');
 const nCtx = noiseCanvas.getContext('2d');
-function resizeNoise(){ 
-    noiseCanvas.width = window.innerWidth; 
-    noiseCanvas.height = window.innerHeight; 
+
+function resizeNoise(){
+
+    noiseCanvas.width = window.innerWidth;
+    noiseCanvas.height = window.innerHeight;
 }
-resizeNoise(); 
+
+resizeNoise();
+
 window.addEventListener('resize', resizeNoise);
+
 function drawNoise(){
-    const data = nCtx.createImageData(noiseCanvas.width, noiseCanvas.height);
+
+    const data = nCtx.createImageData(
+        noiseCanvas.width,
+        noiseCanvas.height
+    );
+
     const buf = data.data;
-    for(let i=0;i<buf.length;i+=4){ 
-        const val=Math.random()*255; 
-        buf[i]=buf[i+1]=buf[i+2]=val; 
-        buf[i+3]=55; 
+
+    for(let i = 0; i < buf.length; i += 4){
+
+        const val = Math.random() * 255;
+
+        buf[i] = val;
+        buf[i+1] = val;
+        buf[i+2] = val;
+        buf[i+3] = 45;
     }
-    nCtx.putImageData(data,0,0); 
+
+    nCtx.putImageData(data,0,0);
+
     requestAnimationFrame(drawNoise);
 }
+
 drawNoise();
 
-// Скример
-const portrait = document.getElementById('portrait');
-setInterval(() => {
-    if (document.getElementById('menu-screen').style.display !== 'none') {
-        portrait.src = 'baseroom-creepy.jpg';
-        setTimeout(() => { portrait.src = 'baseroom-normal.jpg'; }, 300);
-    }
-}, 5000);
+/* =========================
+   SCREAMER EFFECT
+========================= */
 
-// ====================== ИГРА ======================
+const portrait = document.getElementById('portrait');
+
+setInterval(()=>{
+
+    if(document.getElementById('menu-screen').style.display !== 'none'){
+
+        portrait.src = './baseroom-creepy.jpg';
+
+        setTimeout(()=>{
+
+            portrait.src = './baseroom-normal.jpg';
+
+        },300);
+    }
+
+},5000);
+
+/* =========================
+   GAME
+========================= */
+
 const canvas = document.getElementById('game-canvas');
 const ctx = canvas.getContext('2d');
+
 const promptEl = document.getElementById('prompt');
 const noteEl = document.getElementById('note');
 const timerEl = document.getElementById('timer');
+
 const liquidImg = document.getElementById('liquid-img');
 
-let player = { x: 200, y: 350, angle: 0 };
-let keys = {};
+let animationId = null;
+
 let gameActive = false;
 let timerActive = false;
 let timerInterval = null;
 
+const keys = {};
+
+let canInteract = true;
+
+const player = {
+    x:200,
+    y:350
+};
+
 const chests = [
-    { x: 300, y: 120, num: "01", text: "all similarities are purely coincidental." },
-    { x: 650, y: 520, num: "02", text: "base will change the world\ndeployer is a robot not real human" },
-    { x: 1050, y: 140, num: "03", text: "brian Brian is a Reptilian" },
-    { x: 180, y: 480, num: "04", text: "When this $fnab token reaches a 1M market cap,\nsomething terrible will happen." },
-    { x: 920, y: 280, num: "05", text: "Brian is coming" }
+    {
+        x:300,
+        y:120,
+        num:"01",
+        text:"all similarities are purely coincidental."
+    },
+
+    {
+        x:650,
+        y:520,
+        num:"02",
+        text:"base will change the world\ndeployer is a robot not real human"
+    },
+
+    {
+        x:1050,
+        y:140,
+        num:"03",
+        text:"brian Brian is a Reptilian"
+    },
+
+    {
+        x:180,
+        y:480,
+        num:"04",
+        text:"When this $fnab token reaches a 1M market cap,\nsomething terrible will happen."
+    },
+
+    {
+        x:920,
+        y:280,
+        num:"05",
+        text:"Brian is coming"
+    }
 ];
 
-const liquidGuy = { x: 1080, y: 420 };
+const liquidGuy = {
+    x:1080,
+    y:420
+};
 
-window.addEventListener('keydown', e => keys[e.code] = true);
-window.addEventListener('keyup', e => keys[e.code] = false);
+/* =========================
+   KEYBOARD
+========================= */
 
-canvas.addEventListener('mousemove', (e) => {
-    if (!gameActive) return;
-    const rect = canvas.getBoundingClientRect();
-    player.angle = Math.atan2(e.clientY - rect.top - player.y, e.clientX - rect.left - player.x);
+document.addEventListener('keydown',(e)=>{
+
+    keys[e.code] = true;
+
+    if([
+        'ArrowUp',
+        'ArrowDown',
+        'ArrowLeft',
+        'ArrowRight',
+        'Space'
+    ].includes(e.code)){
+
+        e.preventDefault();
+    }
 });
 
-function resizeCanvas() {
+document.addEventListener('keyup',(e)=>{
+
+    keys[e.code] = false;
+});
+
+/* =========================
+   RESIZE
+========================= */
+
+function resizeCanvas(){
+
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 }
-window.addEventListener('resize', resizeCanvas);
+
 resizeCanvas();
 
-function drawRoom() {
+window.addEventListener('resize', resizeCanvas);
+
+/* =========================
+   DRAW ROOM
+========================= */
+
+function drawRoom(){
+
     ctx.fillStyle = '#020202';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.fillRect(
+        0,
+        0,
+        canvas.width,
+        canvas.height
+    );
 }
 
-function drawPlayer() {
+/* =========================
+   DRAW PLAYER
+========================= */
+
+function drawPlayer(){
+
     ctx.fillStyle = '#1e4d8c';
+
     ctx.fillRect(player.x-13, player.y+10, 9, 24);
     ctx.fillRect(player.x+4, player.y+10, 9, 24);
+
     ctx.fillStyle = '#3366dd';
+
     ctx.fillRect(player.x-15, player.y-10, 30, 30);
+
     ctx.fillRect(player.x-19, player.y-8, 8, 22);
     ctx.fillRect(player.x+11, player.y-8, 8, 22);
+
     ctx.fillStyle = '#ffddaa';
+
     ctx.fillRect(player.x-11, player.y-32, 22, 24);
+
     ctx.fillStyle = '#112233';
+
     ctx.fillRect(player.x-7, player.y-27, 6, 8);
     ctx.fillRect(player.x+2, player.y-27, 6, 8);
 }
 
-function drawChest(c) {
+/* =========================
+   DRAW CHEST
+========================= */
+
+function drawChest(c){
+
     ctx.fillStyle = '#b8860b';
+
     ctx.fillRect(c.x-34, c.y-32, 68, 62);
+
     ctx.fillStyle = '#654300';
+
     ctx.fillRect(c.x-28, c.y-42, 56, 18);
+
     ctx.fillStyle = '#222';
+
     ctx.fillRect(c.x-12, c.y-24, 24, 14);
+
     ctx.fillStyle = '#ddd';
+
     ctx.fillRect(c.x-6, c.y-20, 12, 6);
-   
+
     ctx.fillStyle = '#fff';
+
     ctx.font = 'bold 20px Courier New';
+
     ctx.fillText(c.num, c.x-9, c.y-8);
 }
 
-function drawLiquidGuy() {
-    if (liquidImg.complete) {
-        ctx.drawImage(liquidImg, liquidGuy.x - 55, liquidGuy.y - 105, 110, 145);
+/* =========================
+   DRAW LIQUID PNG
+========================= */
+
+function drawLiquidGuy(){
+
+    if(liquidImg.complete){
+
+        ctx.drawImage(
+            liquidImg,
+            liquidGuy.x - 70,
+            liquidGuy.y - 110,
+            140,
+            160
+        );
     }
 }
 
-function startReturnTimer() {
-    if (timerActive) return;
+/* =========================
+   TIMER
+========================= */
+
+function startReturnTimer(){
+
+    if(timerActive) return;
+
     timerActive = true;
+
     let time = 20;
-    timerEl.textContent = `00:${time}`;
+
     timerEl.style.display = 'block';
-    timerInterval = setInterval(() => {
+
+    timerEl.textContent = `00:${time}`;
+
+    timerInterval = setInterval(()=>{
+
         time--;
-        timerEl.textContent = `00:${time < 10 ? '0' : ''}${time}`;
-        if (time <= 0) {
+
+        timerEl.textContent =
+            `00:${time < 10 ? '0' : ''}${time}`;
+
+        if(time <= 0){
+
             clearInterval(timerInterval);
+
             timerEl.style.display = 'none';
-            document.getElementById('game-screen').style.display = 'none';
-            document.getElementById('menu-screen').style.display = 'block';
+
             gameActive = false;
+
+            cancelAnimationFrame(animationId);
+
+            document.getElementById('game-screen').style.display = 'none';
+
+            document.getElementById('menu-screen').style.display = 'block';
         }
-    }, 1000);
+
+    },1000);
 }
 
-function gameLoop() {
-    if (!gameActive) return;
+/* =========================
+   SHOW NOTE
+========================= */
+
+function showNote(text,duration=4000){
+
+    noteEl.textContent = text;
+
+    noteEl.style.display = 'block';
+
+    setTimeout(()=>{
+
+        noteEl.style.display = 'none';
+
+    },duration);
+}
+
+/* =========================
+   GAME LOOP
+========================= */
+
+function gameLoop(){
+
+    if(!gameActive) return;
+
     drawRoom();
-    drawPlayer();
 
     const speed = 4.2;
-    if (keys['KeyW'] || keys['ArrowUp']) player.y -= speed;
-    if (keys['KeyS'] || keys['ArrowDown']) player.y += speed;
-    if (keys['KeyA'] || keys['ArrowLeft']) player.x -= speed;
-    if (keys['KeyD'] || keys['ArrowRight']) player.x += speed;
+
+    if(keys['KeyW'] || keys['ArrowUp']) player.y -= speed;
+    if(keys['KeyS'] || keys['ArrowDown']) player.y += speed;
+    if(keys['KeyA'] || keys['ArrowLeft']) player.x -= speed;
+    if(keys['KeyD'] || keys['ArrowRight']) player.x += speed;
 
     player.x = Math.max(60, Math.min(canvas.width - 60, player.x));
     player.y = Math.max(60, Math.min(canvas.height - 60, player.y));
 
-    chests.forEach(c => drawChest(c));
+    drawPlayer();
+
+    chests.forEach(drawChest);
+
     drawLiquidGuy();
 
-    const dist = (obj) => Math.hypot(obj.x - player.x, obj.y - player.y);
     let near = false;
 
-    chests.forEach(chest => {
-        if (dist(chest) < 85) near = true;
-        if (dist(chest) < 85 && keys['KeyF']) {
-            noteEl.textContent = chest.text;
-            noteEl.style.display = 'block';
-            startReturnTimer();
-            setTimeout(() => noteEl.style.display = 'none', 5000);
+    const dist = (obj)=>{
+
+        return Math.hypot(
+            obj.x - player.x,
+            obj.y - player.y
+        );
+    };
+
+    chests.forEach(chest=>{
+
+        if(dist(chest) < 85){
+
+            near = true;
+
+            if(keys['KeyF'] && canInteract){
+
+                canInteract = false;
+
+                showNote(chest.text,5000);
+
+                startReturnTimer();
+            }
         }
     });
 
-    if (dist(liquidGuy) < 110) near = true;
-    if (dist(liquidGuy) < 110 && keys['KeyF']) {
-        noteEl.textContent = "BUY $LIQUID";
-        noteEl.style.display = 'block';
-        startReturnTimer();
-        setTimeout(() => noteEl.style.display = 'none', 4000);
+    if(dist(liquidGuy) < 110){
+
+        near = true;
+
+        if(keys['KeyF'] && canInteract){
+
+            canInteract = false;
+
+            showNote("BUY $LIQUID",4000);
+
+            startReturnTimer();
+        }
+    }
+
+    if(!keys['KeyF']){
+
+        canInteract = true;
     }
 
     promptEl.style.display = near ? 'block' : 'none';
-    requestAnimationFrame(gameLoop);
+
+    animationId = requestAnimationFrame(gameLoop);
 }
 
-// Запуск
-document.getElementById('new-game').addEventListener('click', () => {
-    document.getElementById('menu-screen').style.display = 'none';
-    document.getElementById('game-screen').style.display = 'block';
+/* =========================
+   START GAME
+========================= */
+
+document.getElementById('new-game').addEventListener('click',()=>{
+
+    clearInterval(timerInterval);
+
+    cancelAnimationFrame(animationId);
+
     gameActive = true;
     timerActive = false;
-    player.x = 200; 
+
+    player.x = 200;
     player.y = 350;
-    
-    canvas.focus();
+
+    document.getElementById('menu-screen').style.display = 'none';
+
+    document.getElementById('game-screen').style.display = 'block';
+
     resizeCanvas();
+
+    document.body.focus();
+
+    window.focus();
+
     gameLoop();
 });
+
 </script>
+
 </body>
 </html>
